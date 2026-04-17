@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Star, Zap, Shield, ArrowRight } from 'lucide-react';
+import { Check, Shield, ArrowRight } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { useNavigate } from 'react-router-dom';
 

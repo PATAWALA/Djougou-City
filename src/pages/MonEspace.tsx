@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Plus, Package, Clock, CheckCircle, Eye, ShoppingBag, Heart, Newspaper, LogOut } from 'lucide-react';
+import { Plus, Package,CheckCircle, Eye, ShoppingBag, Heart, Newspaper, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
 import { formatFCFA, formatDate } from '../utils/formatPrice';

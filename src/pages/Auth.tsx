@@ -1,78 +1,106 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Phone, Lock, ArrowRight, Shield, Smartphone } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, Shield, UserPlus, LogIn } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<'phone' | 'otp'>('phone');
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const formatPhone = (value: string) => {
-    // Formatage simple pour le Bénin : 97 12 34 56
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length <= 8) {
-      return cleaned.replace(/(\d{2})(?=\d)/g, '$1 ').trim();
-    }
-    return cleaned.slice(0, 8).replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSendOTP = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
+
+    if (!isLogin) {
+      if (formData.password !== formData.confirmPassword) {
+        setError('Les mots de passe ne correspondent pas');
+        return;
+      }
+      if (formData.password.length < 6) {
+        setError('Le mot de passe doit contenir au moins 6 caractères');
+        return;
+      }
+    }
+
     setLoading(true);
 
-    const rawPhone = phone.replace(/\s/g, '');
-    if (rawPhone.length !== 8) {
-      setError('Numéro de téléphone invalide (8 chiffres attendus)');
+    try {
+      if (isLogin) {
+        // CONNEXION
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (error) throw error;
+
+        // Vérifier le rôle de l'utilisateur
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profile?.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/mon-espace');
+        }
+      } else {
+        // INSCRIPTION
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              phone: formData.phone,
+            },
+          },
+        });
+        if (error) throw error;
+
+        if (data.user) {
+          // Créer le profil avec role = 'user' par défaut
+          await supabase.from('profiles').insert({
+            id: data.user.id,
+            full_name: formData.fullName,
+            email: formData.email,
+            phone: formData.phone,
+            role: 'user',
+          });
+        }
+
+        setError('Inscription réussie ! Vous pouvez maintenant vous connecter.');
+        setIsLogin(true);
+        // Réinitialiser le formulaire
+        setFormData({
+          fullName: '',
+          email: '',
+          phone: '',
+          password: '',
+          confirmPassword: '',
+        });
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    // Format international Bénin (+229)
-    const intlPhone = `+229${rawPhone}`;
-
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: intlPhone,
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setSuccess(`Un code de vérification a été envoyé par SMS au ${phone}`);
-      setMode('otp');
-    }
-    setLoading(false);
-  };
-
-  const handleVerifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    const rawPhone = phone.replace(/\s/g, '');
-    const intlPhone = `+229${rawPhone}`;
-
-    const { error } = await supabase.auth.verifyOtp({
-      phone: intlPhone,
-      token: otp,
-      type: 'sms',
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      // Connexion réussie
-      navigate('/mon-espace');
-    }
-    setLoading(false);
   };
 
   return (
@@ -85,114 +113,174 @@ const Auth: React.FC = () => {
         >
           <div className="text-center mb-8">
             <div className="inline-flex p-4 bg-primary/10 rounded-full mb-4">
-              {mode === 'phone' ? (
-                <Smartphone className="w-8 h-8 text-primary" />
+              {isLogin ? (
+                <LogIn className="w-8 h-8 text-primary" />
               ) : (
-                <Lock className="w-8 h-8 text-primary" />
+                <UserPlus className="w-8 h-8 text-primary" />
               )}
             </div>
             <h2 className="text-2xl font-display font-bold text-dark">
-              {mode === 'phone' ? 'Connexion / Inscription' : 'Vérification'}
+              {isLogin ? 'Connexion' : 'Inscription'}
             </h2>
             <p className="text-muted text-sm mt-2">
-              {mode === 'phone'
-                ? 'Entrez votre numéro de téléphone pour continuer'
-                : `Code envoyé au ${phone}`}
+              {isLogin
+                ? 'Accédez à votre espace personnel'
+                : 'Créez votre compte gratuitement'}
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-4">
+            <div
+              className={`p-3 rounded-xl text-sm mb-4 ${
+                error.includes('réussie')
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-red-50 text-red-600'
+              }`}
+            >
               {error}
             </div>
           )}
 
-          {success && (
-            <div className="bg-green-50 text-green-600 p-3 rounded-xl text-sm mb-4">
-              {success}
-            </div>
-          )}
-
-          {mode === 'phone' ? (
-            <form onSubmit={handleSendOTP} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-dark mb-2">
-                  Numéro de téléphone
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
-                    placeholder="97 12 34 56"
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                    required
-                  />
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">
+                    Nom complet
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={formData.fullName}
+                      onChange={handleChange}
+                      placeholder="Moussa Yaya"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      required={!isLogin}
+                    />
+                  </div>
                 </div>
-                <p className="text-xs text-muted mt-1">
-                  Format: 8 chiffres (ex: 97 12 34 56)
-                </p>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                {loading ? 'Envoi en cours...' : 'Recevoir un code SMS'}
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOTP} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-dark mb-2">
-                  Code de vérification (6 chiffres)
-                </label>
+                <div>
+                  <label className="block text-sm font-medium text-dark mb-2">
+                    Numéro de téléphone
+                  </label>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      placeholder="97 12 34 56"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      required={!isLogin}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-dark mb-2">
+                Adresse email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                 <input
-                  type="text"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="123456"
-                  className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-center text-2xl tracking-widest"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="exemple@email.com"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
                   required
-                  autoFocus
                 />
               </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={loading || otp.length !== 6}
-                className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Vérification...' : 'Vérifier et se connecter'}
-              </button>
+            <div>
+              <label className="block text-sm font-medium text-dark mb-2">
+                Mot de passe
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('phone');
-                  setOtp('');
-                  setError('');
-                }}
-                className="w-full text-primary text-sm font-semibold hover:underline"
-              >
-                Modifier le numéro
-              </button>
-            </form>
-          )}
+            {!isLogin && (
+              <div>
+                <label className="block text-sm font-medium text-dark mb-2">
+                  Confirmer le mot de passe
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                    required={!isLogin}
+                    minLength={6}
+                  />
+                </div>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading
+                ? 'Chargement...'
+                : isLogin
+                ? 'Se connecter'
+                : "S'inscrire"}
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <button
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+              }}
+              className="text-primary font-semibold text-sm hover:underline"
+            >
+              {isLogin
+                ? "Pas encore de compte ? S'inscrire"
+                : 'Déjà un compte ? Se connecter'}
+            </button>
+          </div>
 
           <div className="mt-6 pt-6 border-t border-border">
             <p className="text-xs text-muted text-center">
               <Shield className="inline w-3 h-3 mr-1" />
-              Vos informations sont sécurisées. Pas de mot de passe à retenir.
+              Connexion sécurisée. Vos données sont protégées.
             </p>
           </div>
         </motion.div>
 
         <div className="mt-6 text-center">
-          <a href="/publier/faire-publier" className="text-primary font-semibold text-sm hover:underline">
+          <a
+            href="/publier/faire-publier"
+            className="text-primary font-semibold text-sm hover:underline"
+          >
             Vous préférez qu'on publie pour vous ? Cliquez ici
           </a>
         </div>

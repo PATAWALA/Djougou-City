@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Upload, X, Plus, Check, AlertCircle } from 'lucide-react';
+import { Upload, X, Check, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
 import { formatFCFA } from '../utils/formatPrice';
@@ -53,7 +53,6 @@ const PublicationForm: React.FC = () => {
     description: '',
     contact: user?.phone || '',
     localisation: '',
-    // Champs spécifiques seront ajoutés selon le type
   });
 
   // Images (pour annonce et nécrologie)
@@ -110,8 +109,15 @@ const PublicationForm: React.FC = () => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + duree);
 
-      // 3. Insertion dans la table correspondante
-      let table: 'annonces' | 'necrologies' | 'articles' = type + 's';
+      // 3. Insertion dans la table correspondante (correction du mapping)
+      const tableMap: Record<string, 'annonces' | 'necrologies' | 'articles'> = {
+        annonce: 'annonces',
+        necrologie: 'necrologies',
+        article: 'articles',
+      };
+      const table = tableMap[type];
+      if (!table) throw new Error('Type de publication invalide');
+
       const insertData: any = {
         user_id: user.id,
         created_at: new Date().toISOString(),
@@ -157,10 +163,6 @@ const PublicationForm: React.FC = () => {
       const { error: insertError } = await supabase.from(table).insert(insertData);
       if (insertError) throw insertError;
 
-      // 4. Enregistrer l'achat du pack (optionnel)
-      // ...
-
-      // Redirection vers espace utilisateur
       navigate('/mon-espace?success=1');
     } catch (err: any) {
       setError(err.message);
@@ -195,20 +197,18 @@ const PublicationForm: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Champs communs */}
           <div>
             <label className="block font-medium text-dark mb-2">Titre *</label>
             <input
               type="text"
               required
               value={formData.titre}
-              onChange={e => setFormData({...formData, titre: e.target.value})}
+              onChange={e => setFormData({ ...formData, titre: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
               placeholder={type === 'annonce' ? 'Ex: Vends moto Bajaj Boxer' : 'Titre de l\'annonce'}
             />
           </div>
 
-          {/* Champs spécifiques selon le type */}
           {type === 'annonce' && (
             <>
               <div>
@@ -216,7 +216,7 @@ const PublicationForm: React.FC = () => {
                 <input
                   type="number"
                   value={formData.prix || ''}
-                  onChange={e => setFormData({...formData, prix: e.target.value})}
+                  onChange={e => setFormData({ ...formData, prix: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                   placeholder="Ex: 450000"
                 />
@@ -225,7 +225,7 @@ const PublicationForm: React.FC = () => {
                 <label className="block font-medium text-dark mb-2">Catégorie</label>
                 <select
                   value={formData.categorie || 'vente'}
-                  onChange={e => setFormData({...formData, categorie: e.target.value})}
+                  onChange={e => setFormData({ ...formData, categorie: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                 >
                   <option value="vente">Vente</option>
@@ -245,7 +245,7 @@ const PublicationForm: React.FC = () => {
                   type="text"
                   required
                   value={formData.nom_defunt || ''}
-                  onChange={e => setFormData({...formData, nom_defunt: e.target.value})}
+                  onChange={e => setFormData({ ...formData, nom_defunt: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                 />
               </div>
@@ -255,7 +255,7 @@ const PublicationForm: React.FC = () => {
                   <input
                     type="date"
                     value={formData.date_deces || ''}
-                    onChange={e => setFormData({...formData, date_deces: e.target.value})}
+                    onChange={e => setFormData({ ...formData, date_deces: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                   />
                 </div>
@@ -264,7 +264,7 @@ const PublicationForm: React.FC = () => {
                   <input
                     type="date"
                     value={formData.date_enterrement || ''}
-                    onChange={e => setFormData({...formData, date_enterrement: e.target.value})}
+                    onChange={e => setFormData({ ...formData, date_enterrement: e.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                   />
                 </div>
@@ -274,7 +274,7 @@ const PublicationForm: React.FC = () => {
                 <input
                   type="text"
                   value={formData.lieu_enterrement || ''}
-                  onChange={e => setFormData({...formData, lieu_enterrement: e.target.value})}
+                  onChange={e => setFormData({ ...formData, lieu_enterrement: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                 />
               </div>
@@ -283,7 +283,7 @@ const PublicationForm: React.FC = () => {
                 <input
                   type="text"
                   value={formData.famille || ''}
-                  onChange={e => setFormData({...formData, famille: e.target.value})}
+                  onChange={e => setFormData({ ...formData, famille: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                 />
               </div>
@@ -297,13 +297,12 @@ const PublicationForm: React.FC = () => {
                 required
                 rows={6}
                 value={formData.contenu || ''}
-                onChange={e => setFormData({...formData, contenu: e.target.value})}
+                onChange={e => setFormData({ ...formData, contenu: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none resize-none"
               />
             </div>
           )}
 
-          {/* Description / Message */}
           {type !== 'article' && (
             <div>
               <label className="block font-medium text-dark mb-2">
@@ -313,19 +312,18 @@ const PublicationForm: React.FC = () => {
                 required={type === 'annonce'}
                 rows={4}
                 value={formData.description || formData.message || ''}
-                onChange={e => setFormData({...formData, [type === 'annonce' ? 'description' : 'message']: e.target.value})}
+                onChange={e => setFormData({ ...formData, [type === 'annonce' ? 'description' : 'message']: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none resize-none"
               />
             </div>
           )}
 
-          {/* Contact */}
           <div>
             <label className="block font-medium text-dark mb-2">Contact (téléphone)</label>
             <input
               type="tel"
               value={formData.contact}
-              onChange={e => setFormData({...formData, contact: e.target.value})}
+              onChange={e => setFormData({ ...formData, contact: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
               placeholder="97 12 34 56"
             />
@@ -338,13 +336,12 @@ const PublicationForm: React.FC = () => {
                 <input
                   type="text"
                   value={formData.localisation || ''}
-                  onChange={e => setFormData({...formData, localisation: e.target.value})}
+                  onChange={e => setFormData({ ...formData, localisation: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
                   placeholder="Ex: Quartier Zongo, Djougou"
                 />
               </div>
 
-              {/* Upload d'images */}
               <div>
                 <label className="block font-medium text-dark mb-2">
                   Photos ({previews.length}/{currentPack.photos || 1})
@@ -380,7 +377,6 @@ const PublicationForm: React.FC = () => {
             </>
           )}
 
-          {/* Résumé du pack */}
           <div className="bg-background p-4 rounded-xl">
             <h4 className="font-semibold text-dark mb-2">Récapitulatif de votre publication</h4>
             <ul className="text-sm text-muted space-y-1">
