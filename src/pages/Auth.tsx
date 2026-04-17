@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, ArrowRight, Shield, UserPlus, LogIn } from 'lucide-react';
+import { Mail, Lock, User, Phone, ArrowRight, Shield, UserPlus, LogIn, ArrowLeft } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
 
@@ -38,6 +38,7 @@ const Auth: React.FC = () => {
     }
 
     setLoading(true);
+    console.log('🔐 Tentative de', isLogin ? 'connexion' : 'inscription', 'avec email:', formData.email);
 
     try {
       if (isLogin) {
@@ -48,20 +49,38 @@ const Auth: React.FC = () => {
         });
         if (error) throw error;
 
+        console.log('✅ Connexion réussie, user ID:', data.user.id);
+
         // Vérifier le rôle de l'utilisateur
-        const { data: profile } = await supabase
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('role')
           .eq('id', data.user.id)
           .single();
 
+        if (profileError) {
+          console.error('❌ Erreur récupération profil:', profileError);
+          if (profileError.message.includes('schema') || profileError.code === '42P01') {
+            setError('Erreur de configuration de la base de données. Vérifiez les politiques RLS.');
+          } else {
+            setError('Erreur lors de la récupération de votre profil.');
+          }
+          setLoading(false);
+          return;
+        }
+
+        console.log('👤 Profil récupéré:', profile);
+
         if (profile?.role === 'admin') {
+          console.log('➡️ Redirection vers /dashboard');
           navigate('/dashboard');
         } else {
+          console.log('➡️ Redirection vers /mon-espace');
           navigate('/mon-espace');
         }
       } else {
         // INSCRIPTION
+        console.log('📝 Tentative d\'inscription avec:', formData.email);
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
@@ -74,15 +93,23 @@ const Auth: React.FC = () => {
         });
         if (error) throw error;
 
+        console.log('✅ Inscription auth réussie, user ID:', data.user?.id);
+
         if (data.user) {
           // Créer le profil avec role = 'user' par défaut
-          await supabase.from('profiles').insert({
+          const { error: insertError } = await supabase.from('profiles').insert({
             id: data.user.id,
             full_name: formData.fullName,
             email: formData.email,
             phone: formData.phone,
             role: 'user',
           });
+
+          if (insertError) {
+            console.error('❌ Erreur insertion profil:', insertError);
+          } else {
+            console.log('✅ Profil créé avec succès');
+          }
         }
 
         setError('Inscription réussie ! Vous pouvez maintenant vous connecter.');
@@ -97,32 +124,50 @@ const Auth: React.FC = () => {
         });
       }
     } catch (err: any) {
-      setError(err.message);
+      console.error('❌ Erreur:', err.message);
+      // Gestion spécifique des erreurs courantes
+      if (err.message.includes('Email not confirmed')) {
+        setError('Votre adresse email n\'est pas confirmée. Vérifiez votre boîte de réception ou contactez le support.');
+      } else if (err.message.includes('rate limit')) {
+        setError('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
+      } else if (err.message.includes('schema')) {
+        setError('Erreur de base de données. Vérifiez les politiques RLS.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <MainLayout>
-      <div className="max-w-md mx-auto px-4 py-16">
+    <MainLayout hideHeader hideFooter>
+      <div className="max-w-md mx-auto px-4 py-8 md:py-12">
+        {/* Lien retour accueil */}
+        <div className="mb-4">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Retour à l'accueil
+          </Link>
+        </div>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card rounded-3xl shadow-xl border border-border p-8"
+          className="bg-card rounded-3xl shadow-xl border border-border p-6 md:p-8"
         >
-          <div className="text-center mb-8">
-            <div className="inline-flex p-4 bg-primary/10 rounded-full mb-4">
+          <div className="text-center mb-6">
+            <div className="inline-flex p-3 md:p-4 bg-primary/10 rounded-full mb-3">
               {isLogin ? (
-                <LogIn className="w-8 h-8 text-primary" />
+                <LogIn className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               ) : (
-                <UserPlus className="w-8 h-8 text-primary" />
+                <UserPlus className="w-6 h-6 md:w-8 md:h-8 text-primary" />
               )}
             </div>
-            <h2 className="text-2xl font-display font-bold text-dark">
+            <h2 className="text-xl md:text-2xl font-display font-bold text-dark">
               {isLogin ? 'Connexion' : 'Inscription'}
             </h2>
-            <p className="text-muted text-sm mt-2">
+            <p className="text-muted text-xs md:text-sm mt-1">
               {isLogin
                 ? 'Accédez à votre espace personnel'
                 : 'Créez votre compte gratuitement'}
@@ -145,36 +190,36 @@ const Auth: React.FC = () => {
             {!isLogin && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">
+                  <label className="block text-sm font-medium text-dark mb-1">
                     Nom complet
                   </label>
                   <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <input
                       type="text"
                       name="fullName"
                       value={formData.fullName}
                       onChange={handleChange}
                       placeholder="Moussa Yaya"
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                       required={!isLogin}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-dark mb-2">
+                  <label className="block text-sm font-medium text-dark mb-1">
                     Numéro de téléphone
                   </label>
                   <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                     <input
                       type="tel"
                       name="phone"
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="97 12 34 56"
-                      className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                       required={!isLogin}
                     />
                   </div>
@@ -183,36 +228,36 @@ const Auth: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-dark mb-2">
+              <label className="block text-sm font-medium text-dark mb-1">
                 Adresse email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="exemple@email.com"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-dark mb-2">
+              <label className="block text-sm font-medium text-dark mb-1">
                 Mot de passe
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                 <input
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                   required
                   minLength={6}
                 />
@@ -221,18 +266,18 @@ const Auth: React.FC = () => {
 
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-dark mb-2">
+                <label className="block text-sm font-medium text-dark mb-1">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                   <input
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                    className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm"
                     required={!isLogin}
                     minLength={6}
                   />
@@ -243,18 +288,18 @@ const Auth: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-primary text-white py-3 rounded-full font-bold text-base hover:bg-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loading
                 ? 'Chargement...'
                 : isLogin
                 ? 'Se connecter'
                 : "S'inscrire"}
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-5 text-center">
             <button
               onClick={() => {
                 setIsLogin(!isLogin);
@@ -268,7 +313,7 @@ const Auth: React.FC = () => {
             </button>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-border">
+          <div className="mt-5 pt-4 border-t border-border">
             <p className="text-xs text-muted text-center">
               <Shield className="inline w-3 h-3 mr-1" />
               Connexion sécurisée. Vos données sont protégées.
@@ -276,13 +321,13 @@ const Auth: React.FC = () => {
           </div>
         </motion.div>
 
-        <div className="mt-6 text-center">
-          <a
-            href="/publier/faire-publier"
-            className="text-primary font-semibold text-sm hover:underline"
+        <div className="mt-5 text-center">
+          <Link
+            to="/publier/faire-publier"
+            className="text-primary font-semibold text-xs md:text-sm hover:underline"
           >
             Vous préférez qu'on publie pour vous ? Cliquez ici
-          </a>
+          </Link>
         </div>
       </div>
     </MainLayout>
