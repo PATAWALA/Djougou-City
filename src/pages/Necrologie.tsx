@@ -7,7 +7,6 @@ import {
   Flower,
   Plus,
   Search,
-  ChevronRight,
   X,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
