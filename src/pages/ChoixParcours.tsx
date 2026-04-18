@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { User, PhoneCall, ArrowRight, Shield, Clock, ThumbsUp } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import MainLayout from '../layouts/MainLayout';
 
 const ChoixParcours: React.FC = () => {
   const [searchParams] = useSearchParams();

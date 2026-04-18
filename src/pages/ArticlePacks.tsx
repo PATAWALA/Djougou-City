@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Zap, TrendingUp, Eye, Clock, Share2, Star } from 'lucide-react';
-import MainLayout from '../layouts/MainLayout';
+import { Check, ArrowRight, Zap, TrendingUp, Share2 } from 'lucide-react';
 import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
 

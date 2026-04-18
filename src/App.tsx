@@ -5,6 +5,7 @@ import Annonces from './pages/PetitesAnnonces';
 import Necrologie from './pages/Necrologie';
 import Premium from './pages/Premium';
 import Contact from './pages/Contact';
+import ScrollToTop from './components/ScrollToTop'
 import APropos from './pages/APropos';
 import FaireUnDon from './pages/FaireUnDon';
 import PublierMoiMeme from './pages/PublierMoiMeme';
@@ -25,6 +26,7 @@ import ArticlePacks from './pages/ArticlePacks';
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/actualites" element={<Actualites />} />

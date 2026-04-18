@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Camera, TrendingUp, Award, Zap } from 'lucide-react';
+import { Check, ArrowRight, Camera, TrendingUp, Award } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
