@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { CheckCircle, Copy, AlertCircle } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
+import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
 
 const Paiement: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const params = new URLSearchParams(location.search);
-  const montant = parseInt(params.get('montant') || '0');
-  const pack = params.get('pack') || '';
-  const type = params.get('type') || '';
+  const [searchParams] = useSearchParams();
+  
+  // Récupération des paramètres d'URL
+  const type = searchParams.get('type') || 'annonce';
+  const pack = searchParams.get('pack') || 'standard';
+  const redirectTo = searchParams.get('redirect') || '/mon-espace';
 
+  const [montant, setMontant] = useState<number>(0);
   const [method, setMethod] = useState<'mtn' | 'moov' | null>(null);
   const [step, setStep] = useState<'choice' | 'instructions' | 'confirmation'>('choice');
   const [reference, setReference] = useState('');
@@ -22,19 +25,41 @@ const Paiement: React.FC = () => {
     moov: '95 67 89 00'
   };
 
+  // Calcul du montant en fonction du type et du pack
+  useEffect(() => {
+    const priceMapping: Record<string, Record<string, number>> = {
+      annonce: {
+        basic: PRICES.ANNONCE_BASIC || 500,
+        standard: PRICES.ANNONCE_STANDARD || 1000,
+        premium: PRICES.ANNONCE_PREMIUM || 2500,
+      },
+      necrologie: {
+        simple: PRICES.NECROLOGIE_SIMPLE || 1000,
+        hommage: PRICES.NECROLOGIE_HOMMAGE || 2500,
+        ceremonie: PRICES.NECROLOGIE_CEREMONIE || 5000,
+      },
+      article: {
+        coupdepouce: PRICES.BOOST_COUP_DE_POUCE || 1000,
+        visibilite: PRICES.BOOST_VISIBILITE || 3000,
+        viral: PRICES.BOOST_VIRAL || 5000,
+      },
+    };
+
+    const price = priceMapping[type]?.[pack] || 1000;
+    setMontant(price);
+  }, [type, pack]);
+
   const handleSelectMethod = (selected: 'mtn' | 'moov') => {
     setMethod(selected);
     setStep('instructions');
-    // Générer une référence unique
     setReference(`DC-${Date.now().toString().slice(-6)}`);
   };
 
   const handleConfirmPayment = () => {
     setStep('confirmation');
-    // Simuler un délai puis rediriger
+    // Simuler un délai puis rediriger vers l'URL de retour avec les paramètres
     setTimeout(() => {
-      // Rediriger vers la page de publication avec succès
-      navigate(`/publier/${type}/form?pack=${pack}&payment=success`);
+      navigate(`${redirectTo}?type=${type}&pack=${pack}&payment=success`);
     }, 2000);
   };
 

@@ -65,7 +65,7 @@ const Annonces: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/publier"
+                to="/publier/parcours"
                 className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:shadow-xl transition-all"
               >
                 <Plus className="w-5 h-5" />

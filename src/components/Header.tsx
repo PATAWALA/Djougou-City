@@ -12,7 +12,7 @@ const Header: React.FC = () => {
     { label: 'Actualités', path: '/actualites' },
     { label: 'Nécrologie', path: '/necrologie' },
     { label: 'Premium', path: '/premium' },
-    { label: 'Publier', path: '/publier' },
+    { label: 'Publier', path: '/publier/parcours' },
     { label: 'Mon Espace', path: '/mon-espace' },
   ];
 
