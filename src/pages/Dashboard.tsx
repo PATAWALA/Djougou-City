@@ -8,7 +8,6 @@ import {
   Newspaper,
   Settings,
   LogOut,
-  TrendingUp,
   DollarSign,
   Eye,
   Plus,
@@ -18,7 +17,6 @@ import {
   CreditCard,
   UserPlus,
   BarChart3,
-  PieChart,
   Download,
   Zap,
   ChevronRight,
@@ -31,7 +29,6 @@ import {
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { formatFCFA, formatNombre } from '../utils/formatPrice';
-import { FOLLOWERS } from '../utils/constants';
 
 // Types
 interface StatCardProps {
