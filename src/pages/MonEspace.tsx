@@ -12,7 +12,6 @@ import {
   Menu,
   X,
   Settings,
-  HelpCircle,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
