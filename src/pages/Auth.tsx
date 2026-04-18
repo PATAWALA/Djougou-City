@@ -42,7 +42,6 @@ const Auth: React.FC = () => {
 
     try {
       if (isLogin) {
-        // CONNEXION
         const { data, error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
@@ -50,36 +49,8 @@ const Auth: React.FC = () => {
         if (error) throw error;
 
         console.log('✅ Connexion réussie, user ID:', data.user.id);
-
-        // Vérifier le rôle de l'utilisateur
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError) {
-          console.error('❌ Erreur récupération profil:', profileError);
-          if (profileError.message.includes('schema') || profileError.code === '42P01') {
-            setError('Erreur de configuration de la base de données. Vérifiez les politiques RLS.');
-          } else {
-            setError('Erreur lors de la récupération de votre profil.');
-          }
-          setLoading(false);
-          return;
-        }
-
-        console.log('👤 Profil récupéré:', profile);
-
-        if (profile?.role === 'admin') {
-          console.log('➡️ Redirection vers /dashboard');
-          navigate('/dashboard');
-        } else {
-          console.log('➡️ Redirection vers /mon-espace');
-          navigate('/mon-espace');
-        }
+        await redirectBasedOnRole(data.user.id);
       } else {
-        // INSCRIPTION
         console.log('📝 Tentative d\'inscription avec:', formData.email);
         const { data, error } = await supabase.auth.signUp({
           email: formData.email,
@@ -96,42 +67,33 @@ const Auth: React.FC = () => {
         console.log('✅ Inscription auth réussie, user ID:', data.user?.id);
 
         if (data.user) {
-          // Créer le profil avec role = 'user' par défaut
-          const { error: insertError } = await supabase.from('profiles').insert({
-            id: data.user.id,
-            full_name: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            role: 'user',
-          });
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: data.user.id,
+              full_name: formData.fullName,
+              email: formData.email,
+              phone: formData.phone,
+              role: 'user',
+            }, { onConflict: 'id' });
 
-          if (insertError) {
-            console.error('❌ Erreur insertion profil:', insertError);
+          if (updateError) {
+            console.error('❌ Erreur mise à jour profil:', updateError);
           } else {
-            console.log('✅ Profil créé avec succès');
+            console.log('✅ Profil créé/mis à jour avec succès');
           }
-        }
 
-        setError('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-        setIsLogin(true);
-        // Réinitialiser le formulaire
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          password: '',
-          confirmPassword: '',
-        });
+          await redirectBasedOnRole(data.user.id);
+        }
       }
     } catch (err: any) {
       console.error('❌ Erreur:', err.message);
-      // Gestion spécifique des erreurs courantes
       if (err.message.includes('Email not confirmed')) {
-        setError('Votre adresse email n\'est pas confirmée. Vérifiez votre boîte de réception ou contactez le support.');
+        setError('Votre adresse email n\'est pas confirmée.');
       } else if (err.message.includes('rate limit')) {
-        setError('Trop de tentatives. Veuillez patienter quelques minutes avant de réessayer.');
-      } else if (err.message.includes('schema')) {
-        setError('Erreur de base de données. Vérifiez les politiques RLS.');
+        setError('Trop de tentatives. Patientez quelques minutes.');
+      } else if (err.message.includes('schema') || err.message.includes('relation')) {
+        setError('Erreur de base de données. Désactivez RLS sur la table profiles.');
       } else {
         setError(err.message);
       }
@@ -140,10 +102,28 @@ const Auth: React.FC = () => {
     }
   };
 
+  const redirectBasedOnRole = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const role = profile?.role || 'user';
+      console.log('👤 Rôle détecté:', role);
+      navigate(role === 'admin' ? '/dashboard' : '/mon-espace');
+    } catch (err: any) {
+      console.error('❌ Erreur récupération rôle:', err.message);
+      navigate('/mon-espace');
+    }
+  };
+
   return (
     <MainLayout hideHeader hideFooter>
       <div className="max-w-md mx-auto px-4 py-8 md:py-12">
-        {/* Lien retour accueil */}
         <div className="mb-4">
           <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
             <ArrowLeft className="w-4 h-4" />
@@ -175,13 +155,7 @@ const Auth: React.FC = () => {
           </div>
 
           {error && (
-            <div
-              className={`p-3 rounded-xl text-sm mb-4 ${
-                error.includes('réussie')
-                  ? 'bg-green-50 text-green-600'
-                  : 'bg-red-50 text-red-600'
-              }`}
-            >
+            <div className="p-3 rounded-xl text-sm mb-4 bg-red-50 text-red-600">
               {error}
             </div>
           )}
