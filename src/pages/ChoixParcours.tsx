@@ -102,8 +102,8 @@ const ChoixParcours: React.FC = () => {
         </div>
 
         <div className="mt-8 text-center">
-          <Link to="/publier" className="text-primary font-semibold hover:underline">
-            ← Revenir au choix du pack
+          <Link to="/" className="text-primary font-semibold hover:underline">
+            ← Revenir a l'accueil
           </Link>
         </div>
       </div>
