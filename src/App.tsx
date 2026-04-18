@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Actualites from './pages/Actualites';
@@ -16,6 +15,7 @@ import Auth from './pages/Auth';
 import PublicationForm from './pages/PublicationForm';
 import MonEspace from './pages/MonEspace';
 import Paiement from './pages/Paiement';
+import Dashboard from './pages/Dashboard'; // <-- AJOUTEZ CET IMPORT
 
 function App() {
   return (
@@ -37,6 +37,7 @@ function App() {
         <Route path="/publier/:type/form" element={<PublicationForm />} />
         <Route path="/mon-espace" element={<MonEspace />} />
         <Route path="/paiement" element={<Paiement />} />
+        <Route path="/dashboard" element={<Dashboard />} /> {/* <-- AJOUTEZ CETTE ROUTE */}
       </Routes>
     </Router>
   );

@@ -18,6 +18,38 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // ------------------- FONCTION DE REDIRECTION -------------------
+  const redirectBasedOnRole = async (userId: string) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      const role = profile?.role || 'user';
+      console.log('👤 Rôle détecté:', role);
+
+      if (role === 'admin' || userId === '9227cb0a-35d7-4dc9-b8e9-133083cc087b') {
+        console.log('➡️ Redirection admin vers /dashboard');
+        navigate('/dashboard', { replace: true });
+      } else {
+        console.log('➡️ Redirection user vers /mon-espace');
+        navigate('/mon-espace', { replace: true });
+      }
+    } catch (err: any) {
+      console.error('❌ Erreur récupération rôle:', err.message);
+      // Fallback admin par ID
+      if (userId === '9227cb0a-35d7-4dc9-b8e9-133083cc087b') {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate('/mon-espace', { replace: true });
+      }
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -99,25 +131,6 @@ const Auth: React.FC = () => {
       }
     } finally {
       setLoading(false);
-    }
-  };
-
-  const redirectBasedOnRole = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      const role = profile?.role || 'user';
-      console.log('👤 Rôle détecté:', role);
-      navigate(role === 'admin' ? '/dashboard' : '/mon-espace');
-    } catch (err: any) {
-      console.error('❌ Erreur récupération rôle:', err.message);
-      navigate('/mon-espace');
     }
   };
 
