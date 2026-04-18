@@ -37,7 +37,7 @@ export const actualitesData: Actualite[] = [
     likes: 567,
     commentaires: 34,
     partages: 123,
-    image: 'https://images.unsplash.com/photo-1533900298313-83b99338a788?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&fit=crop&q=80'
   },
   {
     id: '4',
@@ -61,6 +61,6 @@ export const actualitesData: Actualite[] = [
     likes: 1456,
     commentaires: 78,
     partages: 534,
-    image: 'https://images.unsplash.com/photo-1533106958146-0b3b9d4a5a4d?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=1200&fit=crop&q=80'
   }
 ];
