@@ -69,7 +69,7 @@ const Home: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/"
+                to="/publier"
                 className="bg-white text-primary px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2"
               >
                 <Megaphone className="w-5 h-5" />

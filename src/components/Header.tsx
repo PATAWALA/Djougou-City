@@ -57,6 +57,7 @@ const Header: React.FC = () => {
     { label: 'Actualités', path: '/actualites' },
     { label: 'Nécrologie', path: '/necrologie' },
     { label: 'Premium', path: '/premium' },
+    { label: 'À propos', path: '/a-propos' },
     { label: 'Publier', path: '/publier' },
   ];
 
@@ -80,20 +81,20 @@ const Header: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             <a 
-    href={CONTACT.FACEBOOK} 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="text-[#1877F2] hover:opacity-80 transition-opacity p-1"
-    aria-label="Facebook"
+              href={CONTACT.FACEBOOK} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#1877F2] hover:opacity-80 transition-opacity p-1"
+              aria-label="Facebook"
             >
               <FaFacebookF className="w-4 h-4" />
             </a>
             <a 
-    href={`https://wa.me/${CONTACT.WHATSAPP}`} 
-    target="_blank" 
-    rel="noopener noreferrer"
-    className="text-[#25D366] hover:opacity-80 transition-opacity p-1"
-    aria-label="WhatsApp"
+              href={`https://wa.me/${CONTACT.WHATSAPP}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#25D366] hover:opacity-80 transition-opacity p-1"
+              aria-label="WhatsApp"
             >
               <FaWhatsapp className="w-4 h-4" />
             </a>
