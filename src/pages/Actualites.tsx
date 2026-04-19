@@ -96,7 +96,7 @@ const Actualites: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/publier/parcours"
+                to="/publier"
                 className="bg-secondary text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all"
               >
                 <Zap className="w-5 h-5" />
