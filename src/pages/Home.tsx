@@ -28,7 +28,7 @@ const Home: React.FC = () => {
       setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
     }, 6000);
     return () => clearInterval(interval);
-  }, []);
+  }, [heroImages.length]);
 
   // Filtrer les articles boostés pour la section "À la une"
   const articlesBoostes = actualitesData.filter((a) => a.estBoosted).slice(0, 3);
