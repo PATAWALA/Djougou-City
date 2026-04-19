@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Phone, User, FileText, CheckCircle } from 'lucide-react';
-import MainLayout from '../layouts/MainLayout';
+import { Send, Phone, User, FileText, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const FairePublier: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -15,13 +15,20 @@ const FairePublier: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
-    // Ici on pourrait envoyer un email ou une notification à l'admin
     setTimeout(() => setSubmitted(false), 5000);
   };
 
   return (
-    <MainLayout>
-      <div className="max-w-3xl mx-auto px-4 py-12">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 md:py-12">
+      <div className="max-w-3xl w-full">
+        {/* Lien retour accueil */}
+        <div className="mb-4">
+          <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted hover:text-primary transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Retour à l'accueil
+          </Link>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-3xl font-display font-bold text-dark mb-4">
             Faites publier pour vous
@@ -117,13 +124,19 @@ const FairePublier: React.FC = () => {
           )}
         </motion.div>
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-3">
           <p className="text-sm text-muted">
             Vous préférez venir en personne ? Rendez-vous à la Mairie de Djougou, du lundi au samedi, 8h-18h.
           </p>
+          <Link
+            to="/auth"
+            className="inline-block text-primary font-semibold text-sm hover:underline"
+          >
+            Vous êtes à l'aise avec le téléphone ? Publiez vous-même en créant un compte
+          </Link>
         </div>
       </div>
-    </MainLayout>
+    </div>
   );
 };
 

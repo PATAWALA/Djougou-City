@@ -40,7 +40,7 @@ function App() {
         <Route path="/faire-un-don" element={<FaireUnDon />} />
         <Route path="/publier/moi-meme" element={<PublierMoiMeme />} />
         <Route path="/publier/faire-publier" element={<FairePublier />} />
-        <Route path="/publier/parcours" element={<ChoixParcours />} />
+        <Route path="/publier" element={<ChoixParcours />} />
         <Route path="/publier/annonce/pack" element={<PackAnnonce />} />
         
         {/* Nouvelles routes pour les packs depuis MonEspace */}
