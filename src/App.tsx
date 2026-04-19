@@ -22,6 +22,7 @@ import Dashboard from './pages/Dashboard';
 import AnnoncePacks from './pages/AnnoncePacks';
 import NecrologiePacks from './pages/NecrologiePacks';
 import ArticlePacks from './pages/ArticlePacks';
+import ArticleDetail from './pages/ArticleDetail';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/actualites" element={<Actualites />} />
+        <Route path="/actualites/:id" element={<ArticleDetail />} />
         <Route path="/annonces" element={<Annonces />} />
         <Route path="/necrologie" element={<Necrologie />} />
         <Route path="/premium" element={<Premium />} />
