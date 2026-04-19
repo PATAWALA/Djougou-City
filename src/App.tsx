@@ -7,6 +7,7 @@ import Premium from './pages/Premium';
 import Contact from './pages/Contact';
 import ScrollToTop from './components/ScrollToTop'
 import APropos from './pages/APropos';
+import AnnonceDetail from './pages/AnnonceDetail';
 import FaireUnDon from './pages/FaireUnDon';
 import PublierMoiMeme from './pages/PublierMoiMeme';
 import FairePublier from './pages/FairePublier';
@@ -32,6 +33,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/actualites" element={<Actualites />} />
         <Route path="/actualites/:id" element={<ArticleDetail />} />
+        <Route path="/annonces/:id" element={<AnnonceDetail />} />
         <Route path="/annonces" element={<Annonces />} />
         <Route path="/necrologie" element={<Necrologie />} />
         <Route path="/premium" element={<Premium />} />
