@@ -27,10 +27,13 @@ const AnnonceDetail: React.FC = () => {
   }
 
   const categorieColors = {
-    vente: 'bg-success/10 text-success',
-    location: 'bg-blue-100 text-blue-700',
-    service: 'bg-purple-100 text-purple-700',
-    emploi: 'bg-orange-100 text-orange-700'
+  vente: 'bg-success/10 text-success',
+  location: 'bg-blue-100 text-blue-700',
+  service: 'bg-purple-100 text-purple-700',
+  emploi: 'bg-orange-100 text-orange-700',
+  don: 'bg-pink-100 text-pink-700',
+  perdu: 'bg-yellow-100 text-yellow-700',
+  recherche: 'bg-cyan-100 text-cyan-700'
   };
 
   return (
@@ -106,7 +109,7 @@ const AnnonceDetail: React.FC = () => {
             <div className="bg-background rounded-2xl p-6 h-fit">
               <p className="text-sm text-muted mb-1">Prix</p>
               <p className="text-3xl font-display font-bold text-primary mb-4">
-                {formatFCFA(annonce.prix)}
+                {annonce.prix ? formatFCFA(annonce.prix) : 'Gratuit / Don'}
               </p>
               
               <div className="border-t border-border pt-4 space-y-3">

@@ -10,11 +10,14 @@ interface PetiteAnnonceCardProps {
 }
 
 const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
-  const categorieColors = {
+  const categorieColors: Record<string, string> = {
     vente: 'bg-success/10 text-success',
     location: 'bg-blue-100 text-blue-700',
     service: 'bg-purple-100 text-purple-700',
-    emploi: 'bg-orange-100 text-orange-700'
+    emploi: 'bg-orange-100 text-orange-700',
+    don: 'bg-pink-100 text-pink-700',
+    perdu: 'bg-yellow-100 text-yellow-700',
+    recherche: 'bg-cyan-100 text-cyan-700',
   };
 
   return (
@@ -25,10 +28,10 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
       whileHover={{ y: -5 }}
       className="bg-card rounded-2xl shadow-lg overflow-hidden border border-border hover:shadow-2xl transition-all flex flex-col h-full"
     >
-      {/* Image (non cliquable) */}
+      {/* Image */}
       <div className="relative h-48 overflow-hidden">
-        <img 
-          src={annonce.images[0]} 
+        <img
+          src={annonce.images[0]}
           alt={annonce.titre}
           className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
         />
@@ -60,17 +63,19 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
 
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div>
-            <p className="text-xs text-muted">Prix</p>
+            <p className="text-xs text-muted">
+              {annonce.categorie === 'location' ? 'Loyer' : annonce.prix ? 'Prix' : ''}
+            </p>
             <p className="text-2xl font-display font-bold text-primary">
-              {formatFCFA(annonce.prix)}
+              {annonce.prix ? formatFCFA(annonce.prix) : 'Gratuit'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Actions : Contacter + Voir détails */}
+      {/* Actions */}
       <div className="px-5 pb-5 flex gap-2">
-        <a 
+        <a
           href={`tel:${annonce.contact.replace(/\s/g, '')}`}
           className="flex-1 flex items-center justify-center gap-1.5 bg-primary/10 text-primary py-2 rounded-full text-sm font-semibold hover:bg-primary hover:text-white transition-colors"
         >

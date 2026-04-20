@@ -15,8 +15,8 @@ export interface Annonce {
   id: string;
   titre: string;
   description: string;
-  prix: number;
-  categorie: 'vente' | 'location' | 'service' | 'emploi';
+  prix: number | null; // peut être null pour don, perdu, etc.
+  categorie: 'vente' | 'location' | 'service' | 'emploi' | 'don' | 'perdu' | 'recherche';
   contact: string;
   localisation: string;
   datePublication: string;

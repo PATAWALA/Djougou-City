@@ -1,21 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Upload, X, Check, AlertCircle } from 'lucide-react';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
 import { formatFCFA } from '../utils/formatPrice';
 
+// Types pour les packs
+interface PackBase {
+  prix: number;
+}
+
+interface PackAnnonce extends PackBase {
+  duree: number;
+  photos: number;
+  premium?: boolean;
+  remontee?: boolean;
+  miseEnAvant?: number;
+}
+
+interface PackNecrologie extends PackBase {
+  duree: number;
+  photos: number;
+  messageLong?: boolean;
+  epingle?: number;
+}
+
+interface PackArticle extends PackBase {
+  boost: string;
+  partageFacebook?: boolean;
+}
+
+type PackDetails = PackAnnonce | PackNecrologie | PackArticle;
+
+type PublicationType = 'annonce' | 'necrologie' | 'article';
+
+// Fonction utilitaire hors composant pour éviter les avertissements de pureté
+const generateFileName = (userId: string, file: File): string => {
+  const fileExt = file.name.split('.').pop();
+  const timestamp = Date.now();
+  const random = Math.floor(Math.random() * 10000);
+  return `${userId}/${timestamp}-${random}.${fileExt}`;
+};
+
 const PublicationForm: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const type = searchParams.get('type') as 'annonce' | 'necrologie' | 'article';
+  const type = searchParams.get('type') as PublicationType | null;
   const packId = searchParams.get('pack') || 'standard';
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
 
-  // Vérifier l'authentification
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -26,42 +63,56 @@ const PublicationForm: React.FC = () => {
     });
   }, [navigate]);
 
-  // Définition des packs avec leurs caractéristiques
-  const packDetails: Record<string, any> = {
+  // Définition des packs avec les bons types
+  const packDetails: Record<PublicationType, Record<string, PackDetails>> = {
     annonce: {
       basic: { prix: 500, duree: 30, photos: 1, premium: false },
       standard: { prix: 1000, duree: 30, photos: 3, premium: false, remontee: true },
-      premium: { prix: 2500, duree: 30, photos: 5, premium: true, miseEnAvant: 15 }
+      premium: { prix: 2500, duree: 30, photos: 5, premium: true, miseEnAvant: 15 },
     },
     necrologie: {
-      simple: { prix: 1000, photos: 1, messageLong: false },
-      hommage: { prix: 2500, photos: 3, messageLong: true },
-      ceremonie: { prix: 5000, photos: 5, messageLong: true, epingle: 7 }
+      simple: { prix: 1000, duree: 30, photos: 1, messageLong: false },
+      hommage: { prix: 2500, duree: 30, photos: 3, messageLong: true },
+      ceremonie: { prix: 5000, duree: 30, photos: 5, messageLong: true, epingle: 7 },
     },
     article: {
       coupdepouce: { prix: 1000, boost: 'remontee' },
       visibilite: { prix: 3000, boost: 'epingle3' },
-      viral: { prix: 5000, boost: 'epingle7', partageFacebook: true }
-    }
+      viral: { prix: 5000, boost: 'epingle7', partageFacebook: true },
+    },
   };
 
-  const currentPack = packDetails[type]?.[packId] || {};
+  // Récupération du pack courant avec un fallback safe
+  const currentPack = (type && packDetails[type]?.[packId]) || null;
 
-  // États du formulaire communs
-  const [formData, setFormData] = useState<Record<string, any>>({
+  const [formData, setFormData] = useState<Record<string, string>>({
     titre: '',
     description: '',
     contact: user?.phone || '',
     localisation: '',
+    categorie: 'vente',
+    prix: '',
   });
 
-  // Images (pour annonce et nécrologie)
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
+  const categoriesAnnonce = [
+    { value: 'vente', label: 'Vente' },
+    { value: 'location', label: 'Location' },
+    { value: 'service', label: 'Service' },
+    { value: 'emploi', label: 'Emploi' },
+    { value: 'don', label: 'Don' },
+    { value: 'perdu', label: 'Perdu / Trouvé' },
+    { value: 'recherche', label: 'Recherche' },
+  ];
+
+  const showPriceField = ['vente', 'location'].includes(formData.categorie);
+  const priceLabel = formData.categorie === 'location' ? 'Loyer mensuel (FCFA)' : 'Prix (FCFA)';
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    const maxPhotos = currentPack.photos || 1;
+    const maxPhotos = (currentPack && 'photos' in currentPack) ? currentPack.photos : 1;
     if (images.length + files.length > maxPhotos) {
       setError(`Maximum ${maxPhotos} photo(s) autorisée(s) avec ce pack.`);
       return;
@@ -83,7 +134,7 @@ const PublicationForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) {
+    if (!user || !currentPack || !type) {
       navigate('/auth');
       return;
     }
@@ -91,54 +142,54 @@ const PublicationForm: React.FC = () => {
     setError('');
 
     try {
-      // 1. Upload des images vers Supabase Storage
+      // 1. Upload des images
       const imageUrls: string[] = [];
       for (const file of images) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}-${Math.random()}.${fileExt}`;
+        const fileName = generateFileName(user.id, file);
         const { error: uploadError } = await supabase.storage
           .from('publications')
           .upload(fileName, file);
         if (uploadError) throw uploadError;
-        const { data: { publicUrl } } = supabase.storage.from('publications').getPublicUrl(fileName);
-        imageUrls.push(publicUrl);
+        const { data } = supabase.storage.from('publications').getPublicUrl(fileName);
+        imageUrls.push(data.publicUrl);
       }
 
-      // 2. Calcul de la date d'expiration
-      const duree = currentPack.duree || 30;
+      const duree = ('duree' in currentPack) ? currentPack.duree : 30;
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + duree);
 
-      // 3. Insertion dans la table correspondante (correction du mapping)
-      const tableMap: Record<string, 'annonces' | 'necrologies' | 'articles'> = {
+      const tableMap: Record<PublicationType, 'annonces' | 'necrologies' | 'articles'> = {
         annonce: 'annonces',
         necrologie: 'necrologies',
         article: 'articles',
       };
       const table = tableMap[type];
-      if (!table) throw new Error('Type de publication invalide');
 
-      const insertData: any = {
+      const baseData = {
         user_id: user.id,
         created_at: new Date().toISOString(),
         expires_at: expiresAt.toISOString(),
       };
 
+      let insertData: Record<string, unknown> = { ...baseData };
+
       switch (type) {
         case 'annonce':
-          Object.assign(insertData, {
+          insertData = {
+            ...insertData,
             titre: formData.titre,
             description: formData.description,
-            prix: parseInt(formData.prix) || 0,
+            prix: showPriceField && formData.prix ? parseInt(formData.prix) : null,
             categorie: formData.categorie,
             contact: formData.contact,
             localisation: formData.localisation,
             images: imageUrls,
-            est_premium: currentPack.premium || false,
-          });
+            est_premium: 'premium' in currentPack ? currentPack.premium : false,
+          };
           break;
         case 'necrologie':
-          Object.assign(insertData, {
+          insertData = {
+            ...insertData,
             nom_defunt: formData.nom_defunt,
             date_deces: formData.date_deces,
             date_enterrement: formData.date_enterrement,
@@ -147,16 +198,17 @@ const PublicationForm: React.FC = () => {
             contact: formData.contact,
             message: formData.message,
             photo: imageUrls[0] || null,
-          });
+          };
           break;
         case 'article':
-          Object.assign(insertData, {
+          insertData = {
+            ...insertData,
             titre: formData.titre,
             contenu: formData.contenu,
             auteur: formData.auteur || 'Anonyme',
             est_boosted: true,
             montant_boost: currentPack.prix,
-          });
+          };
           break;
       }
 
@@ -164,17 +216,18 @@ const PublicationForm: React.FC = () => {
       if (insertError) throw insertError;
 
       navigate('/mon-espace?success=1');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Une erreur est survenue';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (!type || !packId) {
+  if (!type || !currentPack) {
     return (
       <MainLayout>
-        <div className="text-center py-20">Type de publication non spécifié.</div>
+        <div className="text-center py-20">Type de publication ou pack non spécifié.</div>
       </MainLayout>
     );
   }
@@ -197,6 +250,7 @@ const PublicationForm: React.FC = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Titre */}
           <div>
             <label className="block font-medium text-dark mb-2">Titre *</label>
             <input
@@ -205,35 +259,38 @@ const PublicationForm: React.FC = () => {
               value={formData.titre}
               onChange={e => setFormData({ ...formData, titre: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
-              placeholder={type === 'annonce' ? 'Ex: Vends moto Bajaj Boxer' : 'Titre de l\'annonce'}
+              placeholder="Ex: Moto Bajaj Boxer, Appartement à louer, Recherche couturier..."
             />
           </div>
 
           {type === 'annonce' && (
             <>
               <div>
-                <label className="block font-medium text-dark mb-2">Prix (FCFA)</label>
-                <input
-                  type="number"
-                  value={formData.prix || ''}
-                  onChange={e => setFormData({ ...formData, prix: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
-                  placeholder="Ex: 450000"
-                />
-              </div>
-              <div>
-                <label className="block font-medium text-dark mb-2">Catégorie</label>
+                <label className="block font-medium text-dark mb-2">Catégorie *</label>
                 <select
-                  value={formData.categorie || 'vente'}
-                  onChange={e => setFormData({ ...formData, categorie: e.target.value })}
+                  value={formData.categorie}
+                  onChange={e => setFormData({ ...formData, categorie: e.target.value, prix: '' })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
+                  required
                 >
-                  <option value="vente">Vente</option>
-                  <option value="location">Location</option>
-                  <option value="service">Service</option>
-                  <option value="emploi">Emploi</option>
+                  {categoriesAnnonce.map(cat => (
+                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  ))}
                 </select>
               </div>
+
+              {showPriceField && (
+                <div>
+                  <label className="block font-medium text-dark mb-2">{priceLabel}</label>
+                  <input
+                    type="number"
+                    value={formData.prix || ''}
+                    onChange={e => setFormData({ ...formData, prix: e.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
+                    placeholder="Ex: 450000"
+                  />
+                </div>
+              )}
             </>
           )}
 
@@ -306,22 +363,24 @@ const PublicationForm: React.FC = () => {
           {type !== 'article' && (
             <div>
               <label className="block font-medium text-dark mb-2">
-                {type === 'annonce' ? 'Description' : 'Message de condoléances / informations'}
+                {type === 'annonce' ? 'Description détaillée *' : 'Message de condoléances / informations'}
               </label>
               <textarea
                 required={type === 'annonce'}
-                rows={4}
+                rows={5}
                 value={formData.description || formData.message || ''}
                 onChange={e => setFormData({ ...formData, [type === 'annonce' ? 'description' : 'message']: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none resize-none"
+                placeholder={type === 'annonce' ? 'Décrivez votre annonce en détail (état, caractéristiques, raison de la vente/don...)' : ''}
               />
             </div>
           )}
 
           <div>
-            <label className="block font-medium text-dark mb-2">Contact (téléphone)</label>
+            <label className="block font-medium text-dark mb-2">Contact (téléphone) *</label>
             <input
               type="tel"
+              required
               value={formData.contact}
               onChange={e => setFormData({ ...formData, contact: e.target.value })}
               className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
@@ -332,9 +391,10 @@ const PublicationForm: React.FC = () => {
           {type !== 'article' && (
             <>
               <div>
-                <label className="block font-medium text-dark mb-2">Localisation</label>
+                <label className="block font-medium text-dark mb-2">Localisation *</label>
                 <input
                   type="text"
+                  required
                   value={formData.localisation || ''}
                   onChange={e => setFormData({ ...formData, localisation: e.target.value })}
                   className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary outline-none"
@@ -344,7 +404,7 @@ const PublicationForm: React.FC = () => {
 
               <div>
                 <label className="block font-medium text-dark mb-2">
-                  Photos ({previews.length}/{currentPack.photos || 1})
+                  Photos ({previews.length}/{'photos' in currentPack ? currentPack.photos : 1})
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {previews.map((url, idx) => (
@@ -359,7 +419,7 @@ const PublicationForm: React.FC = () => {
                       </button>
                     </div>
                   ))}
-                  {previews.length < (currentPack.photos || 1) && (
+                  {previews.length < ('photos' in currentPack ? currentPack.photos : 1) && (
                     <label className="w-24 h-24 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition-colors">
                       <Upload className="w-6 h-6 text-muted" />
                       <span className="text-xs text-muted mt-1">Ajouter</span>
@@ -378,13 +438,13 @@ const PublicationForm: React.FC = () => {
           )}
 
           <div className="bg-background p-4 rounded-xl">
-            <h4 className="font-semibold text-dark mb-2">Récapitulatif de votre publication</h4>
+            <h4 className="font-semibold text-dark mb-2">Récapitulatif</h4>
             <ul className="text-sm text-muted space-y-1">
               <li>Type: {type}</li>
               <li>Pack: {packId} ({formatFCFA(currentPack.prix)})</li>
-              <li>Durée de publication: {currentPack.duree || 30} jours</li>
-              {currentPack.premium && <li>Badge Premium inclus</li>}
-              {currentPack.epingle && <li>Épinglé {currentPack.epingle} jours</li>}
+              {'duree' in currentPack && <li>Durée: {currentPack.duree} jours</li>}
+              {'premium' in currentPack && currentPack.premium && <li>Badge Premium inclus</li>}
+              {'epingle' in currentPack && currentPack.epingle && <li>Épinglé {currentPack.epingle} jours</li>}
             </ul>
           </div>
 
@@ -398,7 +458,7 @@ const PublicationForm: React.FC = () => {
           </button>
 
           <p className="text-xs text-muted text-center">
-            En publiant, vous acceptez nos conditions d'utilisation. Votre annonce sera visible après validation rapide.
+            En publiant, vous acceptez nos conditions d'utilisation.
           </p>
         </form>
       </div>
