@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -20,9 +20,11 @@ import {
   X,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
-import { actualitesData } from '../data/actualites';
+import { supabase } from '../lib/supabase';
+import { actualitesData as staticActualites } from '../data/actualites';
 import { PRICES, FOLLOWERS } from '../utils/constants';
 import { formatFCFA, formatDate, formatNombre } from '../utils/formatPrice';
+import type { Actualite } from '../types';
 
 type CategorieId = 'toutes' | 'politique' | 'sante' | 'economie' | 'societe' | 'culture';
 
@@ -30,6 +32,8 @@ const Actualites: React.FC = () => {
   const [selectedCategorie, setSelectedCategorie] = useState<CategorieId>('toutes');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'toutes', label: 'Toutes' },
@@ -40,8 +44,29 @@ const Actualites: React.FC = () => {
     { id: 'culture', label: 'Culture' },
   ] as const;
 
-  // Simulation de catégorie basée sur le titre
-  const getArticleCategorie = (article: typeof actualitesData[0]): string => {
+  useEffect(() => {
+    const fetchActualites = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('articles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (data) setActualites(data as Actualite[]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des actualités:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActualites();
+  }, []);
+
+  // Simulation de catégorie basée sur le titre (pour les données existantes)
+  const getArticleCategorie = (article: Actualite): string => {
     const titre = article.titre.toLowerCase();
     if (titre.includes('santé') || titre.includes('hopital')) return 'sante';
     if (titre.includes('élection') || titre.includes('politique')) return 'politique';
@@ -51,7 +76,7 @@ const Actualites: React.FC = () => {
   };
 
   const filteredArticles = useMemo(() => {
-    return actualitesData.filter((article) => {
+    return actualites.filter((article) => {
       if (selectedCategorie !== 'toutes') {
         if (getArticleCategorie(article) !== selectedCategorie) return false;
       }
@@ -65,7 +90,7 @@ const Actualites: React.FC = () => {
       }
       return true;
     });
-  }, [selectedCategorie, searchTerm]);
+  }, [actualites, selectedCategorie, searchTerm]);
 
   const boostedArticles = filteredArticles.filter((a) => a.estBoosted);
   const regularArticles = filteredArticles.filter((a) => !a.estBoosted);
@@ -84,7 +109,7 @@ const Actualites: React.FC = () => {
             <div className="flex items-center gap-3 mb-4">
               <Newspaper className="w-8 h-8 text-secondary" />
               <span className="bg-secondary/20 text-secondary px-4 py-1 rounded-full text-sm font-bold">
-                {actualitesData.length} articles ce mois
+                {actualites.length} articles ce mois
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
@@ -110,7 +135,7 @@ const Actualites: React.FC = () => {
         </div>
       </section>
 
-      {/* Barre de recherche et filtres – non sticky, responsive */}
+      {/* Barre de recherche et filtres */}
       <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="hidden lg:flex items-center gap-4">
@@ -210,7 +235,14 @@ const Actualites: React.FC = () => {
 
       {/* Résultats */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {filteredArticles.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted">Chargement des actualités...</p>
+            </div>
+          </div>
+        ) : filteredArticles.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
             <Newspaper className="w-16 h-16 text-muted mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-dark mb-2">Aucun article trouvé</h3>
@@ -248,7 +280,7 @@ const Actualites: React.FC = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="relative h-64 lg:h-full">
                       <img
-                        src={boostedArticles[0].image}
+                        src={boostedArticles[0].image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop'}
                         alt={boostedArticles[0].titre}
                         className="w-full h-full object-cover"
                       />
@@ -316,7 +348,7 @@ const Actualites: React.FC = () => {
                       className="bg-card rounded-2xl shadow-md overflow-hidden border border-secondary/30 hover:shadow-lg transition-all"
                     >
                       <div className="relative h-44">
-                        <img src={article.image} alt={article.titre} className="w-full h-full object-cover" />
+                        <img src={article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop'} alt={article.titre} className="w-full h-full object-cover" />
                         <div className="absolute top-3 left-3 bg-secondary text-dark px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                           <Zap className="w-3 h-3" />
                           Boost
@@ -438,7 +470,7 @@ const Actualites: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Potentiel revenus (optionnel mais sobre) */}
+                  {/* Potentiel revenus */}
                   <div className="bg-success/5 rounded-2xl p-5 border border-success/20">
                     <p className="text-sm text-dark font-medium mb-1">💰 Potentiel de revenus</p>
                     <p className="text-xs text-muted mb-2">

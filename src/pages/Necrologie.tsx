@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -11,14 +11,40 @@ import {
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import NecrologieCard from '../components/NecrologieCard';
-import { necrologiesData } from '../data/necrologies';
+import { supabase } from '../lib/supabase';
+import { necrologiesData as staticNecrologies } from '../data/necrologies';
 import { PRICES, CONTACT } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
+import type { Necrologie as NecrologieType } from '../types';
 
 const Necrologie: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [necrologies, setNecrologies] = useState<NecrologieType[]>(staticNecrologies);
+  const [loading, setLoading] = useState(true);
 
-  const filteredNecrologies = necrologiesData.filter(
+  useEffect(() => {
+    const fetchNecrologies = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('necrologies')
+          .select('*')
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (data) setNecrologies(data as NecrologieType[]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des avis de décès:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNecrologies();
+  }, []);
+
+  const filteredNecrologies = necrologies.filter(
     (necrologie) =>
       necrologie.nomDefunt.toLowerCase().includes(searchTerm.toLowerCase()) ||
       necrologie.famille.toLowerCase().includes(searchTerm.toLowerCase())
@@ -102,7 +128,14 @@ const Necrologie: React.FC = () => {
 
       {/* Liste des avis de décès */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        {filteredNecrologies.length === 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted">Chargement des avis de décès...</p>
+            </div>
+          </div>
+        ) : filteredNecrologies.length === 0 ? (
           <div className="text-center py-20">
             <Heart className="w-16 h-16 text-muted mx-auto mb-4" />
             <p className="text-xl text-muted">Aucun avis de décès trouvé</p>

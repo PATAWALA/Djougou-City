@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
@@ -17,15 +17,19 @@ import {
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import PetiteAnnonceCard from '../components/PetiteAnnonceCard';
-import { annoncesData } from '../data/annonces';
+import { supabase } from '../lib/supabase';
+import { annoncesData as staticAnnonces } from '../data/annonces';
 import { PRICES, FOLLOWERS } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
+import type { Annonce } from '../types';
 
 const Annonces: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCategorie, setSelectedCategorie] = useState<string>('toutes');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [annonces, setAnnonces] = useState<Annonce[]>(staticAnnonces);
+  const [loading, setLoading] = useState(true);
 
   const categories = [
     { id: 'toutes', label: 'Toutes', icon: ShoppingBag },
@@ -35,7 +39,29 @@ const Annonces: React.FC = () => {
     { id: 'emploi', label: 'Emplois', icon: Briefcase },
   ];
 
-  const filteredAnnonces = annoncesData.filter((annonce) => {
+  useEffect(() => {
+    const fetchAnnonces = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('annonces')
+          .select('*')
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        if (data) setAnnonces(data as Annonce[]);
+      } catch (error) {
+        console.error('Erreur lors du chargement des annonces:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnonces();
+  }, []);
+
+  const filteredAnnonces = annonces.filter((annonce) => {
     const matchCategorie = selectedCategorie === 'toutes' || annonce.categorie === selectedCategorie;
     const matchSearch =
       annonce.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,10 +105,10 @@ const Annonces: React.FC = () => {
         </div>
       </section>
 
-      {/* Barre de filtres – non sticky, responsive */}
+      {/* Barre de filtres */}
       <div className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          {/* Desktop : ligne unique */}
+          {/* Desktop */}
           <div className="hidden lg:flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
@@ -142,7 +168,7 @@ const Annonces: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile : barre compacte */}
+          {/* Mobile */}
           <div className="lg:hidden">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -185,7 +211,6 @@ const Annonces: React.FC = () => {
               </div>
             </div>
 
-            {/* Catégories déroulantes mobile */}
             {showMobileFilters && (
               <div className="mt-3 flex flex-wrap gap-1.5 pt-2 border-t border-border">
                 {categories.map((cat) => (
@@ -211,102 +236,113 @@ const Annonces: React.FC = () => {
 
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Annonces Premium */}
-        {premiumAnnonces.length > 0 && (
-          <section className="mb-10">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="p-1.5 bg-secondary/20 rounded-full">
-                <TrendingUp className="w-4 h-4 text-secondary" />
-              </div>
-              <h2 className="text-xl font-display font-bold text-dark">Mises en avant</h2>
-              <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
-                Premium
-              </span>
-            </div>
-
-            <div
-              className={`grid gap-5 ${
-                viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-              }`}
-            >
-              {premiumAnnonces.map((annonce) => (
-                <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Toutes les annonces */}
-        <section id="annonces-liste">
-          <h2 className="text-xl font-display font-bold text-dark mb-5">
-            {selectedCategorie === 'toutes'
-              ? 'Toutes les annonces'
-              : categories.find((c) => c.id === selectedCategorie)?.label}
-            <span className="text-muted text-base font-normal ml-2">({filteredAnnonces.length})</span>
-          </h2>
-
-          {filteredAnnonces.length === 0 ? (
-            <div className="text-center py-16">
-              <ShoppingBag className="w-16 h-16 text-muted mx-auto mb-4" />
-              <p className="text-xl text-muted">Aucune annonce trouvée</p>
-              <button
-                onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategorie('toutes');
-                }}
-                className="mt-4 text-primary font-semibold hover:underline"
-              >
-                Réinitialiser les filtres
-              </button>
-            </div>
-          ) : (
-            <div
-              className={`grid gap-5 ${
-                viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-              }`}
-            >
-              {standardAnnonces.map((annonce) => (
-                <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Section Pourquoi publier */}
-        <section className="mt-16 bg-card rounded-3xl p-8 border border-border">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h3 className="text-2xl font-display font-bold text-dark mb-4">
-                Pourquoi publier sur DjougouCity ?
-              </h3>
-              <ul className="space-y-2">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>Visibilité immédiate auprès de {FOLLOWERS.toLocaleString()} personnes</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>Annonce active 30 jours, renouvelable</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>Option Premium pour être en tête des résultats</span>
-                </li>
-              </ul>
-            </div>
-            <div className="bg-background rounded-2xl p-6">
-              <p className="text-dark font-medium mb-2">💰 Tarif unique</p>
-              <p className="text-3xl font-display font-bold text-primary mb-1">{formatFCFA(PRICES.ANNONCE)}</p>
-              <p className="text-sm text-muted">par annonce, paiement sécurisé</p>
-              <Link
-                to="/publier"
-                className="mt-4 inline-block bg-primary text-white px-5 py-2.5 rounded-full text-sm font-semibold"
-              >
-                Publier maintenant
-              </Link>
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted">Chargement des annonces...</p>
             </div>
           </div>
-        </section>
+        ) : (
+          <>
+            {/* Annonces Premium */}
+            {premiumAnnonces.length > 0 && (
+              <section className="mb-10">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="p-1.5 bg-secondary/20 rounded-full">
+                    <TrendingUp className="w-4 h-4 text-secondary" />
+                  </div>
+                  <h2 className="text-xl font-display font-bold text-dark">Mises en avant</h2>
+                  <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
+                    Premium
+                  </span>
+                </div>
+
+                <div
+                  className={`grid gap-5 ${
+                    viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+                  }`}
+                >
+                  {premiumAnnonces.map((annonce) => (
+                    <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Toutes les annonces */}
+            <section id="annonces-liste">
+              <h2 className="text-xl font-display font-bold text-dark mb-5">
+                {selectedCategorie === 'toutes'
+                  ? 'Toutes les annonces'
+                  : categories.find((c) => c.id === selectedCategorie)?.label}
+                <span className="text-muted text-base font-normal ml-2">({filteredAnnonces.length})</span>
+              </h2>
+
+              {filteredAnnonces.length === 0 ? (
+                <div className="text-center py-16">
+                  <ShoppingBag className="w-16 h-16 text-muted mx-auto mb-4" />
+                  <p className="text-xl text-muted">Aucune annonce trouvée</p>
+                  <button
+                    onClick={() => {
+                      setSearchTerm('');
+                      setSelectedCategorie('toutes');
+                    }}
+                    className="mt-4 text-primary font-semibold hover:underline"
+                  >
+                    Réinitialiser les filtres
+                  </button>
+                </div>
+              ) : (
+                <div
+                  className={`grid gap-5 ${
+                    viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+                  }`}
+                >
+                  {standardAnnonces.map((annonce) => (
+                    <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
+                  ))}
+                </div>
+              )}
+            </section>
+
+            {/* Section Pourquoi publier */}
+            <section className="mt-16 bg-card rounded-3xl p-8 border border-border">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div>
+                  <h3 className="text-2xl font-display font-bold text-dark mb-4">
+                    Pourquoi publier sur DjougouCity ?
+                  </h3>
+                  <ul className="space-y-2">
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>Visibilité immédiate auprès de {FOLLOWERS.toLocaleString()} personnes</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>Annonce active 30 jours, renouvelable</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span>Option Premium pour être en tête des résultats</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="bg-background rounded-2xl p-6">
+                  <p className="text-dark font-medium mb-2">💰 Tarif unique</p>
+                  <p className="text-3xl font-display font-bold text-primary mb-1">{formatFCFA(PRICES.ANNONCE)}</p>
+                  <p className="text-sm text-muted">par annonce, paiement sécurisé</p>
+                  <Link
+                    to="/publier"
+                    className="mt-4 inline-block bg-primary text-white px-5 py-2.5 rounded-full text-sm font-semibold"
+                  >
+                    Publier maintenant
+                  </Link>
+                </div>
+              </div>
+            </section>
+          </>
+        )}
       </div>
     </MainLayout>
   );
