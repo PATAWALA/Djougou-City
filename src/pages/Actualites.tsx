@@ -239,7 +239,6 @@ const Actualites: React.FC = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted">Chargement des actualités...</p>
             </div>
           </div>
         ) : filteredArticles.length === 0 ? (

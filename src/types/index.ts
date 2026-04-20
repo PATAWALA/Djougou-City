@@ -66,3 +66,35 @@ export interface RevenueStats {
     premium: number;
   };
 }
+
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  email: string;
+  phone: string | null;
+  role: 'user' | 'admin';
+  created_at: string;
+}
+
+export interface DashboardStats {
+  totalRevenus: number;
+  utilisateurs: number;
+  annoncesActives: number;
+  articlesBoostes: number;
+  vuesTotales: number;
+  evolution: {
+    revenus: number;
+    utilisateurs: number;
+    annonces: number;
+    vues: number;
+  };
+}
+
+export interface Transaction {
+  id: number;
+  type: string;
+  client: string;
+  montant: number;
+  date: string;
+  statut: string;
+}

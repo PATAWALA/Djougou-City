@@ -11,6 +11,7 @@ import AnnonceDetail from './pages/AnnonceDetail';
 import FaireUnDon from './pages/FaireUnDon';
 import PublierMoiMeme from './pages/PublierMoiMeme';
 import FairePublier from './pages/FairePublier';
+import ProtectedRoute from './components/ProtectedRoute'
 import ChoixParcours from './pages/ChoixParcours';
 import PackAnnonce from './pages/PackAnnonce';
 import Auth from './pages/Auth';
@@ -52,9 +53,9 @@ function App() {
         
         <Route path="/auth" element={<Auth />} />
         <Route path="/publier/:type/form" element={<PublicationForm />} />
-        <Route path="/mon-espace" element={<MonEspace />} />
+        <Route path="/mon-espace" element={<ProtectedRoute><MonEspace /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute adminOnly><Dashboard /></ProtectedRoute>} />
         <Route path="/paiement" element={<Paiement />} />
-        <Route path="/dashboard" element={<Dashboard />} />
       </Routes>
     </Router>
   );
