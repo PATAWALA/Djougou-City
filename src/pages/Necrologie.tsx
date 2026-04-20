@@ -20,20 +20,19 @@ import type { Necrologie as NecrologieType } from '../types';
 const Necrologie: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [necrologies, setNecrologies] = useState<NecrologieType[]>(staticNecrologies);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // plus de spinner bloquant
 
   useEffect(() => {
     const fetchNecrologies = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('necrologies')
           .select('*')
           .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        if (data) setNecrologies(data as NecrologieType[]);
+        if (data && data.length > 0) setNecrologies(data as NecrologieType[]);
       } catch (error) {
         console.error('Erreur lors du chargement des avis de décès:', error);
       } finally {
@@ -52,6 +51,13 @@ const Necrologie: React.FC = () => {
 
   return (
     <MainLayout>
+      {/* Indicateur de chargement discret */}
+      {loading && (
+        <div className="fixed bottom-4 right-4 z-50 bg-card shadow-lg rounded-full px-4 py-2 text-sm text-muted border border-border">
+          Mise à jour des avis de décès...
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-gray-800 to-gray-900 text-white py-14">
         <div className="max-w-7xl mx-auto px-4">
@@ -126,16 +132,9 @@ const Necrologie: React.FC = () => {
         </div>
       </section>
 
-      {/* Liste des avis de décès */}
+      {/* Liste des avis de décès – affichée immédiatement avec données statiques */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-muted">Chargement des avis de décès...</p>
-            </div>
-          </div>
-        ) : filteredNecrologies.length === 0 ? (
+        {filteredNecrologies.length === 0 ? (
           <div className="text-center py-20">
             <Heart className="w-16 h-16 text-muted mx-auto mb-4" />
             <p className="text-xl text-muted">Aucun avis de décès trouvé</p>

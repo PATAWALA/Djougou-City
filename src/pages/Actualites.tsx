@@ -33,7 +33,7 @@ const Actualites: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // plus de spinner bloquant
 
   const categories = [
     { id: 'toutes', label: 'Toutes' },
@@ -48,13 +48,12 @@ const Actualites: React.FC = () => {
     const fetchActualites = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('articles')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        if (data) setActualites(data as Actualite[]);
+        if (data && data.length > 0) setActualites(data as Actualite[]);
       } catch (error) {
         console.error('Erreur lors du chargement des actualités:', error);
       } finally {
@@ -94,6 +93,7 @@ const Actualites: React.FC = () => {
 
   const boostedArticles = filteredArticles.filter((a) => a.estBoosted);
   const regularArticles = filteredArticles.filter((a) => !a.estBoosted);
+
 
   return (
     <MainLayout>

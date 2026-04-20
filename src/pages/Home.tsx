@@ -19,7 +19,7 @@ const Home: React.FC = () => {
   const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
   const [necrologies, setNecrologies] = useState<Necrologie[]>(staticNecrologies);
   const [sponsors, setSponsors] = useState<Sponsor[]>(staticSponsors);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changement : on n'affiche pas de spinner bloquant
 
   const heroImages = [
     'https://images.unsplash.com/photo-1449824913935-59a10b8d2000',
@@ -39,40 +39,32 @@ const Home: React.FC = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const { data: annoncesData, error: annoncesError } = await supabase
+        const { data: annoncesData } = await supabase
           .from('annonces')
           .select('*')
           .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
+        if (annoncesData && annoncesData.length > 0) setAnnonces(annoncesData as Annonce[]);
 
-        if (annoncesError) throw annoncesError;
-        if (annoncesData) setAnnonces(annoncesData as Annonce[]);
-
-        const { data: actualitesData, error: actualitesError } = await supabase
+        const { data: actualitesData } = await supabase
           .from('articles')
           .select('*')
           .order('created_at', { ascending: false });
+        if (actualitesData && actualitesData.length > 0) setActualites(actualitesData as Actualite[]);
 
-        if (actualitesError) throw actualitesError;
-        if (actualitesData) setActualites(actualitesData as Actualite[]);
-
-        const { data: necrologiesData, error: necrologiesError } = await supabase
+        const { data: necrologiesData } = await supabase
           .from('necrologies')
           .select('*')
           .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
+        if (necrologiesData && necrologiesData.length > 0) setNecrologies(necrologiesData as Necrologie[]);
 
-        if (necrologiesError) throw necrologiesError;
-        if (necrologiesData) setNecrologies(necrologiesData as Necrologie[]);
-
-        const { data: sponsorsData, error: sponsorsError } = await supabase
+        const { data: sponsorsData } = await supabase
           .from('sponsors')
           .select('*')
           .eq('actif', true)
           .order('created_at', { ascending: false });
-
-        if (sponsorsError) throw sponsorsError;
-        if (sponsorsData) setSponsors(sponsorsData as Sponsor[]);
+        if (sponsorsData && sponsorsData.length > 0) setSponsors(sponsorsData as Sponsor[]);
       } catch (error) {
         console.error('Erreur lors du chargement des données:', error);
       } finally {
@@ -86,7 +78,6 @@ const Home: React.FC = () => {
   const articlesBoostes = actualites.filter((a) => a.estBoosted).slice(0, 3);
   const annoncesTriees = [...annonces].sort((a, b) => (b.estPremium ? 1 : 0) - (a.estPremium ? 1 : 0));
   const avisDeces = necrologies.slice(0, 3);
-
   return (
     <MainLayout>
       {loading ? (
