@@ -15,9 +15,7 @@ import {
   User,
   Mail,
   Phone,
-  Lock,
   Trash2,
-  Eye,
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
@@ -41,18 +39,17 @@ type TabType = 'dashboard' | 'annonces' | 'necrologies' | 'articles' | 'settings
 const MonEspace: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [stats, setStats] = useState<Stats>({ annonces: 0, necrologies: 0, articles: 0 });
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Listes des publications
   const [annonces, setAnnonces] = useState<any[]>([]);
   const [necrologies, setNecrologies] = useState<any[]>([]);
   const [articles, setArticles] = useState<any[]>([]);
 
-  // État pour l'édition du profil
   const [editProfile, setEditProfile] = useState({
     full_name: '',
     phone: '',
@@ -67,18 +64,18 @@ const MonEspace: React.FC = () => {
         navigate('/auth');
         return;
       }
+      setUserId(session.user.id);
       await loadAllData(session.user.id);
     };
     checkAuth();
   }, [navigate]);
 
-  const loadAllData = async (userId: string) => {
+  const loadAllData = async (uid: string) => {
     try {
-      // Profil
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('full_name, email, phone')
-        .eq('id', userId)
+        .eq('id', uid)
         .single();
 
       if (profileError) throw profileError;
@@ -90,11 +87,10 @@ const MonEspace: React.FC = () => {
         confirmPassword: '',
       });
 
-      // Stats
       const [annoncesRes, necroRes, articlesRes] = await Promise.all([
-        supabase.from('annonces').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('necrologies').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-        supabase.from('articles').select('id', { count: 'exact', head: true }).eq('user_id', userId),
+        supabase.from('annonces').select('id', { count: 'exact', head: true }).eq('user_id', uid),
+        supabase.from('necrologies').select('id', { count: 'exact', head: true }).eq('user_id', uid),
+        supabase.from('articles').select('id', { count: 'exact', head: true }).eq('user_id', uid),
       ]);
 
       setStats({
@@ -103,11 +99,10 @@ const MonEspace: React.FC = () => {
         articles: articlesRes.count || 0,
       });
 
-      // Récupérer les publications
       const [annoncesData, necroData, articlesData] = await Promise.all([
-        supabase.from('annonces').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-        supabase.from('necrologies').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
-        supabase.from('articles').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('annonces').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+        supabase.from('necrologies').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
+        supabase.from('articles').select('*').eq('user_id', uid).order('created_at', { ascending: false }),
       ]);
 
       setAnnonces(annoncesData.data || []);
@@ -128,7 +123,7 @@ const MonEspace: React.FC = () => {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
-    if (!profile) return;
+    if (!userId) return;
 
     if (editProfile.password && editProfile.password !== editProfile.confirmPassword) {
       setMessage({ type: 'error', text: 'Les mots de passe ne correspondent pas' });
@@ -140,14 +135,13 @@ const MonEspace: React.FC = () => {
         full_name: editProfile.full_name,
         phone: editProfile.phone,
       };
-      await supabase.from('profiles').update(updates).eq('id', profile.id);
+      await supabase.from('profiles').update(updates).eq('id', userId);
       if (editProfile.password) {
         await supabase.auth.updateUser({ password: editProfile.password });
       }
       setMessage({ type: 'success', text: 'Profil mis à jour' });
       setEditProfile(prev => ({ ...prev, password: '', confirmPassword: '' }));
-      // Recharger le profil
-      const { data } = await supabase.from('profiles').select('full_name, email, phone').eq('id', profile.id).single();
+      const { data } = await supabase.from('profiles').select('full_name, email, phone').eq('id', userId).single();
       if (data) setProfile(data);
     } catch (error: any) {
       setMessage({ type: 'error', text: error.message });
@@ -241,33 +235,18 @@ const MonEspace: React.FC = () => {
         </nav>
 
         <div className="p-4 border-t border-border">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-dark hover:bg-red-50 hover:text-primary transition-all"
-          >
-            <LogOut className="w-5 h-5" />
-            Déconnexion
+          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium text-dark hover:bg-red-50 hover:text-primary">
+            <LogOut className="w-5 h-5" /> Déconnexion
           </button>
         </div>
       </aside>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Mobile Sidebar */}
       <AnimatePresence>
         {sidebarOpen && (
-          <div
-            className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border p-6"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 p-1">
-                <X className="w-6 h-6" />
-              </button>
+          <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}>
+            <motion.aside initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border p-6" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 p-1"><X className="w-6 h-6" /></button>
               <div className="mb-8">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">D</div>
@@ -276,31 +255,18 @@ const MonEspace: React.FC = () => {
               </div>
               <div className="bg-background rounded-xl p-4 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-dark">{displayName}</p>
-                    <p className="text-xs text-muted">{profile?.email}</p>
-                  </div>
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold">{displayName.charAt(0).toUpperCase()}</div>
+                  <div><p className="font-semibold text-dark">{displayName}</p><p className="text-xs text-muted">{profile?.email}</p></div>
                 </div>
               </div>
               <nav className="space-y-1">
                 {navItems.map((item) => (
-                  <button
-                    key={item.label}
-                    onClick={() => { setActiveTab(item.tab); setSidebarOpen(false); }}
-                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium ${activeTab === item.tab ? 'bg-primary text-white' : 'text-dark hover:bg-background'}`}
-                  >
-                    <item.icon className="w-5 h-5" />
-                    {item.label}
+                  <button key={item.label} onClick={() => { setActiveTab(item.tab); setSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium ${activeTab === item.tab ? 'bg-primary text-white' : 'text-dark hover:bg-background'}`}>
+                    <item.icon className="w-5 h-5" /> {item.label}
                   </button>
                 ))}
               </nav>
-              <button onClick={handleLogout} className="mt-8 flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-red-50">
-                <LogOut className="w-5 h-5" />
-                Déconnexion
-              </button>
+              <button onClick={handleLogout} className="mt-8 flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-red-50"><LogOut className="w-5 h-5" /> Déconnexion</button>
             </motion.aside>
           </div>
         )}
@@ -308,27 +274,16 @@ const MonEspace: React.FC = () => {
 
       {/* Contenu principal */}
       <main className="flex-1 overflow-y-auto">
-        {/* Header mobile */}
         <header className="lg:hidden sticky top-0 z-30 bg-card/80 backdrop-blur-sm border-b border-border px-4 py-3 flex items-center justify-between">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-background">
-            <Menu className="w-6 h-6" />
-          </button>
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold">D</div>
-            <span className="font-display font-bold text-dark">DjougouCity</span>
-          </Link>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-lg hover:bg-background"><Menu className="w-6 h-6" /></button>
+          <Link to="/" className="flex items-center gap-2"><div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center text-white font-bold">D</div><span className="font-display font-bold text-dark">DjougouCity</span></Link>
           <div className="w-8"></div>
         </header>
 
         <div className="px-4 md:px-6 py-6 md:py-8">
           <AnimatePresence mode="wait">
             {message && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}
-              >
+              <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
                 {message.type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                 {message.text}
                 <button onClick={() => setMessage(null)} className="ml-auto"><X className="w-4 h-4" /></button>
@@ -336,7 +291,6 @@ const MonEspace: React.FC = () => {
             )}
 
             <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              {/* TABLEAU DE BORD */}
               {activeTab === 'dashboard' && (
                 <>
                   <div className="mb-8">
