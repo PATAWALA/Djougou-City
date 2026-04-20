@@ -20,19 +20,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
         return;
       }
 
-      if (!adminOnly) {
+      if (adminOnly) {
+        // Vérification unique via la table admins
+        const { data, error } = await supabase
+          .from('admins')
+          .select('id')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        setAllowed(!error && !!data);
+      } else {
         setAllowed(true);
-        setLoading(false);
-        return;
       }
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      setAllowed(profile?.role === 'admin');
       setLoading(false);
     };
 

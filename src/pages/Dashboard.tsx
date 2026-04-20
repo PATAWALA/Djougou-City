@@ -14,7 +14,6 @@ import {
   Plus,
   ArrowUpRight,
   ArrowDownRight,
-  Calendar,
   BarChart3,
   Zap,
   ChevronRight,
@@ -27,6 +26,11 @@ import {
   Phone,
   CheckCircle,
   AlertCircle,
+  Shield,
+  UserPlus,
+  Power,
+  AlertTriangle,
+  Lock,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { formatFCFA, formatNombre } from '../utils/formatPrice';
@@ -39,10 +43,21 @@ import type {
   Necrologie,
   Profile,
   DashboardStats,
-  Transaction,
 } from '../types';
 
-// Types locaux pour les props
+// Types locaux
+interface Admin {
+  id: string;
+  email: string;
+  name: string;
+  created_at: string;
+}
+
+interface SiteSettings {
+  id: number;
+  maintenance_mode: boolean;
+}
+
 interface StatCardProps {
   title: string;
   value: string;
@@ -83,7 +98,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, co
   </motion.div>
 );
 
-type TabType = 'overview' | 'users' | 'annonces' | 'actualites' | 'necrologies' | 'settings';
+type TabType = 'overview' | 'users' | 'admins' | 'annonces' | 'actualites' | 'necrologies' | 'settings';
 
 const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -91,7 +106,8 @@ const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  const [stats, setStats] = useState<DashboardStats>({
+  // Statistiques simulées
+  const [stats] = useState<DashboardStats>({
     totalRevenus: 139500,
     utilisateurs: 47,
     annoncesActives: 12,
@@ -105,12 +121,24 @@ const Dashboard: React.FC = () => {
     },
   });
 
+  // Données dynamiques
   const [users, setUsers] = useState<Profile[]>([]);
+  const [admins, setAdmins] = useState<Admin[]>([]);
   const [annonces, setAnnonces] = useState<Annonce[]>(staticAnnonces);
   const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
   const [necrologies, setNecrologies] = useState<Necrologie[]>(staticNecrologies);
   const [adminProfile, setAdminProfile] = useState<Profile | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
 
+  // États pour les modals
+  const [showDeleteAdminModal, setShowDeleteAdminModal] = useState(false);
+  const [adminToDelete, setAdminToDelete] = useState<Admin | null>(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
+  const [maintenanceConfirmText, setMaintenanceConfirmText] = useState('');
+
+  // États pour l'édition du profil admin connecté
   const [editProfile, setEditProfile] = useState({
     full_name: '',
     email: '',
@@ -119,12 +147,12 @@ const Dashboard: React.FC = () => {
     confirmPassword: '',
   });
 
+  // État pour l'ajout d'un administrateur
   const [newAdmin, setNewAdmin] = useState({
-    full_name: '',
+    name: '',
     email: '',
     phone: '',
     password: '',
-    role: 'admin' as const,
   });
 
   const revenusParMois = [
@@ -135,15 +163,7 @@ const Dashboard: React.FC = () => {
   ];
   const maxRevenu = Math.max(...revenusParMois.map((r) => r.montant));
 
-  const transactions: Transaction[] = [
-    { id: 1, type: 'Sponsor', client: 'Restaurant La Terrasse', montant: 25000, date: '2026-04-15', statut: 'Complété' },
-    { id: 2, type: 'Annonce Premium', client: 'Moto Bajaj', montant: 1000, date: '2026-04-14', statut: 'Complété' },
-    { id: 3, type: 'Nécrologie', client: 'Famille Akotegnon', montant: 1000, date: '2026-04-13', statut: 'Complété' },
-    { id: 4, type: 'Boost Article', client: 'Santé Djougou', montant: 3000, date: '2026-04-12', statut: 'En attente' },
-    { id: 5, type: 'Abonnement Premium', client: 'Garage Spécialiste', montant: 500, date: '2026-04-10', statut: 'Complété' },
-    { id: 6, type: 'Annonce Standard', client: 'Terrain Kilir', montant: 500, date: '2026-04-09', statut: 'Complété' },
-  ];
-
+  // Chargement initial
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -151,52 +171,66 @@ const Dashboard: React.FC = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) return;
 
+        setCurrentAdminId(session.user.id);
+
+        // Profil de l'admin connecté
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
           .single();
-
         if (profile) {
-          const typedProfile = profile as Profile;
-          setAdminProfile(typedProfile);
+          setAdminProfile(profile as Profile);
           setEditProfile({
-            full_name: typedProfile.full_name || '',
-            email: typedProfile.email || session.user.email || '',
-            phone: typedProfile.phone || '',
+            full_name: profile.full_name || '',
+            email: profile.email || session.user.email,
+            phone: profile.phone || '',
             password: '',
             confirmPassword: '',
           });
         }
 
-        const { count: usersCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-        const { count: annoncesCount } = await supabase
-          .from('annonces')
-          .select('*', { count: 'exact', head: true })
-          .gt('expires_at', new Date().toISOString());
-        const { count: articlesCount } = await supabase.from('articles').select('*', { count: 'exact', head: true });
-
-        setStats((prev) => ({
-          ...prev,
-          utilisateurs: usersCount || 47,
-          annoncesActives: annoncesCount || 12,
-          articlesBoostes: articlesCount || 3,
-        }));
-
+        // Utilisateurs
         const { data: usersData } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
         if (usersData) setUsers(usersData as Profile[]);
 
-        const { data: annoncesData } = await supabase.from('annonces').select('*').order('created_at', { ascending: false });
+        // Administrateurs (depuis la table admins)
+        const { data: adminsData } = await supabase.from('admins').select('*').order('created_at', { ascending: false });
+        if (adminsData) setAdmins(adminsData as Admin[]);
+
+        // Annonces actives
+        const { data: annoncesData } = await supabase
+          .from('annonces')
+          .select('*')
+          .gt('expires_at', new Date().toISOString())
+          .order('created_at', { ascending: false });
         if (annoncesData && annoncesData.length > 0) setAnnonces(annoncesData as Annonce[]);
 
+        // Actualités
         const { data: actualitesData } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
         if (actualitesData && actualitesData.length > 0) setActualites(actualitesData as Actualite[]);
 
+        // Nécrologies
         const { data: necrologiesData } = await supabase
           .from('necrologies')
           .select('*')
+          .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
         if (necrologiesData && necrologiesData.length > 0) setNecrologies(necrologiesData as Necrologie[]);
+
+        // Paramètres du site
+        const { data: settingsData } = await supabase.from('site_settings').select('*').maybeSingle();
+        if (settingsData) {
+          setSiteSettings(settingsData as SiteSettings);
+        } else {
+          // Créer l'entrée par défaut
+          const { data: newSettings } = await supabase
+            .from('site_settings')
+            .insert({ maintenance_mode: false })
+            .select()
+            .single();
+          if (newSettings) setSiteSettings(newSettings as SiteSettings);
+        }
       } catch (error) {
         console.error('Erreur chargement dashboard:', error);
       } finally {
@@ -212,6 +246,7 @@ const Dashboard: React.FC = () => {
     window.location.href = '/';
   };
 
+  // Mise à jour du profil admin connecté
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
@@ -238,22 +273,31 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Ajouter un administrateur
   const handleAddAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     try {
+      // 1. Créer l'utilisateur dans auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newAdmin.email,
         password: newAdmin.password,
-        options: { data: { full_name: newAdmin.full_name, phone: newAdmin.phone } },
+        options: { data: { full_name: newAdmin.name, phone: newAdmin.phone } },
       });
       if (authError) throw authError;
+
       if (authData.user) {
-        await supabase.from('profiles').update({ role: 'admin' }).eq('id', authData.user.id);
-        setMessage({ type: 'success', text: 'Administrateur ajouté' });
-        setNewAdmin({ full_name: '', email: '', phone: '', password: '', role: 'admin' });
-        const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        if (data) setUsers(data as Profile[]);
+        // 2. Ajouter à la table admins
+        await supabase.from('admins').insert({
+          id: authData.user.id,
+          email: newAdmin.email,
+          name: newAdmin.name,
+        });
+        setMessage({ type: 'success', text: 'Administrateur ajouté avec succès' });
+        setNewAdmin({ name: '', email: '', phone: '', password: '' });
+        // Recharger la liste
+        const { data } = await supabase.from('admins').select('*').order('created_at', { ascending: false });
+        if (data) setAdmins(data as Admin[]);
       }
     } catch (error: unknown) {
       const err = error as Error;
@@ -261,23 +305,57 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleDelete = async (table: 'annonces' | 'articles' | 'necrologies', id: string) => {
-    if (!confirm('Confirmer la suppression ?')) return;
+  // Ouvrir le modal de suppression d'admin
+  const confirmDeleteAdmin = (admin: Admin) => {
+    if (admin.id === currentAdminId) {
+      setMessage({ type: 'error', text: 'Vous ne pouvez pas supprimer votre propre compte administrateur.' });
+      return;
+    }
+    setAdminToDelete(admin);
+    setDeleteConfirmText('');
+    setShowDeleteAdminModal(true);
+  };
+
+  // Supprimer un administrateur après confirmation
+  const handleDeleteAdmin = async () => {
+    if (!adminToDelete) return;
+    const expectedText = `OUI SUPPRIMER L'ADMIN ${adminToDelete.name}`;
+    if (deleteConfirmText !== expectedText) {
+      setMessage({ type: 'error', text: 'La phrase de confirmation est incorrecte.' });
+      return;
+    }
     try {
-      await supabase.from(table).delete().eq('id', id);
-      if (table === 'annonces') setAnnonces((prev) => prev.filter((a) => a.id !== id));
-      if (table === 'articles') setActualites((prev) => prev.filter((a) => a.id !== id));
-      if (table === 'necrologies') setNecrologies((prev) => prev.filter((n) => n.id !== id));
-      setMessage({ type: 'success', text: 'Élément supprimé' });
+      await supabase.from('admins').delete().eq('id', adminToDelete.id);
+      setMessage({ type: 'success', text: 'Administrateur supprimé' });
+      setAdmins((prev) => prev.filter((a) => a.id !== adminToDelete.id));
+      setShowDeleteAdminModal(false);
+      setAdminToDelete(null);
     } catch (error: unknown) {
       const err = error as Error;
       setMessage({ type: 'error', text: err.message });
     }
   };
 
+  // Activer/désactiver le mode maintenance
+  const toggleMaintenanceMode = async (enable: boolean) => {
+    if (!siteSettings) return;
+    try {
+      await supabase.from('site_settings').update({ maintenance_mode: enable }).eq('id', siteSettings.id);
+      setSiteSettings({ ...siteSettings, maintenance_mode: enable });
+      setMessage({ type: 'success', text: enable ? 'Site mis en maintenance' : 'Site réactivé' });
+    } catch (error: unknown) {
+      const err = error as Error;
+      setMessage({ type: 'error', text: err.message });
+    }
+    setShowMaintenanceModal(false);
+    setMaintenanceConfirmText('');
+  };
+
+  // Navigation
   const navItems = [
     { icon: LayoutDashboard, label: "Vue d'ensemble", tab: 'overview' as TabType },
     { icon: Users, label: 'Utilisateurs', tab: 'users' as TabType },
+    { icon: Shield, label: 'Administrateurs', tab: 'admins' as TabType },
     { icon: ShoppingBag, label: 'Annonces', tab: 'annonces' as TabType },
     { icon: Newspaper, label: 'Actualités', tab: 'actualites' as TabType },
     { icon: Heart, label: 'Nécrologie', tab: 'necrologies' as TabType },
@@ -356,7 +434,7 @@ const Dashboard: React.FC = () => {
 
         <div className="px-6 py-8">
           <AnimatePresence mode="wait">
-            {loading && activeTab === 'overview' ? (
+            {loading ? (
               <div className="flex items-center justify-center h-96"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
             ) : (
               <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
@@ -378,8 +456,8 @@ const Dashboard: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                       <StatCard title="Revenu total" value={formatFCFA(stats.totalRevenus)} icon={DollarSign} trend={{ value: stats.evolution.revenus, positive: true }} color="bg-primary" />
-                      <StatCard title="Utilisateurs" value={stats.utilisateurs.toString()} icon={Users} trend={{ value: stats.evolution.utilisateurs, positive: true }} color="bg-blue-500" />
-                      <StatCard title="Annonces actives" value={stats.annoncesActives.toString()} icon={ShoppingBag} trend={{ value: Math.abs(stats.evolution.annonces), positive: false }} color="bg-orange-500" />
+                      <StatCard title="Utilisateurs" value={users.length.toString()} icon={Users} trend={{ value: stats.evolution.utilisateurs, positive: true }} color="bg-blue-500" />
+                      <StatCard title="Annonces actives" value={annonces.length.toString()} icon={ShoppingBag} trend={{ value: Math.abs(stats.evolution.annonces), positive: false }} color="bg-orange-500" />
                       <StatCard title="Vues totales" value={formatNombre(stats.vuesTotales)} icon={Eye} trend={{ value: stats.evolution.vues, positive: true }} color="bg-green-500" />
                     </div>
 
@@ -408,57 +486,63 @@ const Dashboard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-
-                    <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
-                      <div className="p-6 border-b"><h3 className="text-lg font-bold text-dark flex items-center gap-2"><Calendar className="w-5 h-5 text-primary" />Dernières transactions</h3></div>
-                      <table className="w-full">
-                        <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Type</th><th className="px-6 py-3">Client</th><th className="px-6 py-3">Montant</th><th className="px-6 py-3">Date</th><th className="px-6 py-3">Statut</th></tr></thead>
-                        <tbody className="divide-y divide-border">
-                          {transactions.map((t) => (
-                            <tr key={t.id} className="hover:bg-background/30">
-                              <td className="px-6 py-4"><span className={`px-2.5 py-1 rounded-full text-xs font-medium ${t.type.includes('Sponsor') ? 'bg-blue-100 text-blue-700' : t.type.includes('Annonce') ? 'bg-orange-100 text-orange-700' : t.type.includes('Nécrologie') ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'}`}>{t.type}</span></td>
-                              <td className="px-6 py-4 text-sm text-dark">{t.client}</td>
-                              <td className="px-6 py-4 text-sm font-semibold text-success">{formatFCFA(t.montant)}</td>
-                              <td className="px-6 py-4 text-sm text-muted">{new Date(t.date).toLocaleDateString('fr-FR')}</td>
-                              <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.statut === 'Complété' ? 'bg-success/10 text-success' : 'bg-yellow-100 text-yellow-700'}`}>{t.statut}</span></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
                   </>
                 )}
 
                 {/* UTILISATEURS */}
                 {activeTab === 'users' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-dark mb-4">Utilisateurs ({users.length})</h2>
+                    <div className="bg-card rounded-2xl border overflow-hidden">
+                      <table className="w-full">
+                        <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Nom</th><th className="px-6 py-3">Email</th><th className="px-6 py-3">Téléphone</th><th className="px-6 py-3">Inscrit le</th></tr></thead>
+                        <tbody className="divide-y divide-border">
+                          {users.filter(u => !admins.some(a => a.id === u.id)).map((user) => (
+                            <tr key={user.id}>
+                              <td className="px-6 py-4">{user.full_name || '-'}</td>
+                              <td className="px-6 py-4">{user.email}</td>
+                              <td className="px-6 py-4">{user.phone || '-'}</td>
+                              <td className="px-6 py-4 text-sm text-muted">{new Date(user.created_at).toLocaleDateString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* ADMINISTRATEURS */}
+                {activeTab === 'admins' && (
                   <div className="space-y-8">
                     <div>
-                      <h2 className="text-2xl font-bold text-dark mb-4">Liste des utilisateurs</h2>
+                      <h2 className="text-2xl font-bold text-dark mb-4">Administrateurs ({admins.length})</h2>
                       <div className="bg-card rounded-2xl border overflow-hidden">
                         <table className="w-full">
-                          <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Nom</th><th className="px-6 py-3">Email</th><th className="px-6 py-3">Téléphone</th><th className="px-6 py-3">Rôle</th><th className="px-6 py-3">Inscrit le</th></tr></thead>
+                          <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Nom</th><th className="px-6 py-3">Email</th><th className="px-6 py-3">Ajouté le</th><th className="px-6 py-3"></th></tr></thead>
                           <tbody className="divide-y divide-border">
-                            {users.map((user) => (
-                              <tr key={user.id}>
-                                <td className="px-6 py-4">{user.full_name || '-'}</td>
-                                <td className="px-6 py-4">{user.email}</td>
-                                <td className="px-6 py-4">{user.phone || '-'}</td>
-                                <td className="px-6 py-4"><span className={`px-2 py-1 rounded-full text-xs ${user.role === 'admin' ? 'bg-primary/10 text-primary' : 'bg-gray-100'}`}>{user.role}</span></td>
-                                <td className="px-6 py-4 text-sm text-muted">{new Date(user.created_at).toLocaleDateString()}</td>
+                            {admins.map((admin) => (
+                              <tr key={admin.id}>
+                                <td className="px-6 py-4">{admin.name}</td>
+                                <td className="px-6 py-4">{admin.email}</td>
+                                <td className="px-6 py-4 text-sm text-muted">{new Date(admin.created_at).toLocaleDateString()}</td>
+                                <td className="px-6 py-4">
+                                  <button onClick={() => confirmDeleteAdmin(admin)} className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                         </table>
                       </div>
                     </div>
+
                     <div className="bg-card rounded-2xl p-6 border">
                       <h3 className="text-lg font-bold mb-4">Ajouter un administrateur</h3>
                       <form onSubmit={handleAddAdmin} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Nom complet" value={newAdmin.full_name} onChange={e => setNewAdmin({...newAdmin, full_name: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" required />
+                        <input type="text" placeholder="Nom complet" value={newAdmin.name} onChange={e => setNewAdmin({...newAdmin, name: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" required />
                         <input type="email" placeholder="Email" value={newAdmin.email} onChange={e => setNewAdmin({...newAdmin, email: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" required />
                         <input type="tel" placeholder="Téléphone" value={newAdmin.phone} onChange={e => setNewAdmin({...newAdmin, phone: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" />
                         <input type="password" placeholder="Mot de passe" value={newAdmin.password} onChange={e => setNewAdmin({...newAdmin, password: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" required minLength={6} />
-                        <button type="submit" className="md:col-span-2 bg-primary text-white py-3 rounded-full font-bold">Ajouter l'administrateur</button>
+                        <button type="submit" className="md:col-span-2 bg-primary text-white py-3 rounded-full font-bold flex items-center justify-center gap-2"><UserPlus className="w-4 h-4" /> Ajouter l'administrateur</button>
                       </form>
                     </div>
                   </div>
@@ -478,7 +562,7 @@ const Dashboard: React.FC = () => {
                               <td className="px-6 py-4">{a.categorie}</td>
                               <td className="px-6 py-4">{a.prix ? formatFCFA(a.prix) : '-'}</td>
                               <td className="px-6 py-4">{a.contact}</td>
-                              <td className="px-6 py-4"><button onClick={() => handleDelete('annonces', a.id)} className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
+                              <td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
                             </tr>
                           ))}
                         </tbody>
@@ -500,7 +584,7 @@ const Dashboard: React.FC = () => {
                               <td className="px-6 py-4">{a.titre}</td>
                               <td className="px-6 py-4">{a.auteur}</td>
                               <td className="px-6 py-4">{new Date(a.datePublication).toLocaleDateString()}</td>
-                              <td className="px-6 py-4"><button onClick={() => handleDelete('articles', a.id)} className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
+                              <td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
                             </tr>
                           ))}
                         </tbody>
@@ -522,7 +606,7 @@ const Dashboard: React.FC = () => {
                               <td className="px-6 py-4">{n.nomDefunt}</td>
                               <td className="px-6 py-4">{n.famille}</td>
                               <td className="px-6 py-4">{n.dateEnterrement}</td>
-                              <td className="px-6 py-4"><button onClick={() => handleDelete('necrologies', n.id)} className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
+                              <td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
                             </tr>
                           ))}
                         </tbody>
@@ -533,21 +617,42 @@ const Dashboard: React.FC = () => {
 
                 {/* PARAMÈTRES */}
                 {activeTab === 'settings' && (
-                  <div className="max-w-2xl">
-                    <h2 className="text-2xl font-bold text-dark mb-6">Paramètres du compte</h2>
-                    <form onSubmit={handleUpdateProfile} className="bg-card rounded-2xl p-6 border space-y-4">
-                      <div><label className="block text-sm font-medium mb-1"><User className="inline w-4 h-4 mr-1" />Nom complet</label><input type="text" value={editProfile.full_name} onChange={e => setEditProfile({...editProfile, full_name: e.target.value})} className="w-full px-4 py-2 rounded-xl border bg-background" /></div>
-                      <div><label className="block text-sm font-medium mb-1"><Mail className="inline w-4 h-4 mr-1" />Email</label><input type="email" value={editProfile.email} disabled className="w-full px-4 py-2 rounded-xl border bg-gray-100 text-muted" /></div>
-                      <div><label className="block text-sm font-medium mb-1"><Phone className="inline w-4 h-4 mr-1" />Téléphone</label><input type="tel" value={editProfile.phone} onChange={e => setEditProfile({...editProfile, phone: e.target.value})} className="w-full px-4 py-2 rounded-xl border bg-background" /></div>
-                      <div className="border-t pt-4">
-                        <p className="font-medium mb-2">Changer le mot de passe (optionnel)</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <input type="password" placeholder="Nouveau mot de passe" value={editProfile.password} onChange={e => setEditProfile({...editProfile, password: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" minLength={6} />
-                          <input type="password" placeholder="Confirmer" value={editProfile.confirmPassword} onChange={e => setEditProfile({...editProfile, confirmPassword: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" minLength={6} />
+                  <div className="space-y-8 max-w-2xl">
+                    <div>
+                      <h2 className="text-2xl font-bold text-dark mb-6">Paramètres du compte</h2>
+                      <form onSubmit={handleUpdateProfile} className="bg-card rounded-2xl p-6 border space-y-4">
+                        <div><label className="block text-sm font-medium mb-1"><User className="inline w-4 h-4 mr-1" />Nom complet</label><input type="text" value={editProfile.full_name} onChange={e => setEditProfile({...editProfile, full_name: e.target.value})} className="w-full px-4 py-2 rounded-xl border bg-background" /></div>
+                        <div><label className="block text-sm font-medium mb-1"><Mail className="inline w-4 h-4 mr-1" />Email</label><input type="email" value={editProfile.email} disabled className="w-full px-4 py-2 rounded-xl border bg-gray-100 text-muted" /></div>
+                        <div><label className="block text-sm font-medium mb-1"><Phone className="inline w-4 h-4 mr-1" />Téléphone</label><input type="tel" value={editProfile.phone} onChange={e => setEditProfile({...editProfile, phone: e.target.value})} className="w-full px-4 py-2 rounded-xl border bg-background" /></div>
+                        <div className="border-t pt-4">
+                          <p className="font-medium mb-2">Changer le mot de passe (optionnel)</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input type="password" placeholder="Nouveau mot de passe" value={editProfile.password} onChange={e => setEditProfile({...editProfile, password: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" minLength={6} />
+                            <input type="password" placeholder="Confirmer" value={editProfile.confirmPassword} onChange={e => setEditProfile({...editProfile, confirmPassword: e.target.value})} className="px-4 py-2 rounded-xl border bg-background" minLength={6} />
+                          </div>
+                        </div>
+                        <button type="submit" className="bg-primary text-white px-6 py-3 rounded-full font-bold">Enregistrer</button>
+                      </form>
+                    </div>
+
+                    <div className="bg-red-50 rounded-2xl p-6 border border-red-200">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-red-700 flex items-center gap-2"><Power size={20} className="text-red-600" /> Mode maintenance</h3>
+                          <p className="text-sm text-red-600 mt-1">Activez cette option pour afficher une page de maintenance aux visiteurs. Seuls les administrateurs pourront se connecter.</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${siteSettings?.maintenance_mode ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+                            {siteSettings?.maintenance_mode ? 'Site en maintenance' : 'Site actif'}
+                          </span>
+                          {!siteSettings?.maintenance_mode ? (
+                            <button onClick={() => setShowMaintenanceModal(true)} className="bg-red-600 text-white px-4 py-2 rounded-xl hover:bg-red-700 transition shadow-sm flex items-center gap-2 text-sm"><Power size={16} /> Activer la maintenance</button>
+                          ) : (
+                            <button onClick={() => toggleMaintenanceMode(false)} className="bg-green-600 text-white px-4 py-2 rounded-xl hover:bg-green-700 transition shadow-sm text-sm">Réactiver le site</button>
+                          )}
                         </div>
                       </div>
-                      <button type="submit" className="bg-primary text-white px-6 py-3 rounded-full font-bold">Enregistrer</button>
-                    </form>
+                    </div>
                   </div>
                 )}
               </motion.div>
@@ -555,6 +660,39 @@ const Dashboard: React.FC = () => {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* MODAL SUPPRESSION ADMIN */}
+      {showDeleteAdminModal && adminToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl border border-border">
+            <div className="flex items-center gap-3 text-primary mb-4"><AlertTriangle size={24} /><h3 className="text-xl font-bold text-dark">Confirmation de suppression</h3></div>
+            <p className="text-muted mb-4">Vous allez supprimer l'administrateur <strong>{adminToDelete.name}</strong> ({adminToDelete.email}). Cette action est irréversible.</p>
+            <p className="text-sm text-dark mb-2">Tapez exactement la phrase ci-dessous pour confirmer :</p>
+            <div className="bg-background p-3 rounded-lg font-mono text-sm mb-4 border border-border">OUI SUPPRIMER L'ADMIN {adminToDelete.name}</div>
+            <input type="text" value={deleteConfirmText} onChange={(e) => setDeleteConfirmText(e.target.value)} className="w-full px-4 py-2 rounded-xl border border-border bg-background mb-4" placeholder="OUI SUPPRIMER L'ADMIN ..." />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowDeleteAdminModal(false)} className="px-4 py-2 border border-border rounded-lg hover:bg-background">Annuler</button>
+              <button onClick={handleDeleteAdmin} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-dark">Confirmer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL MAINTENANCE */}
+      {showMaintenanceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl border border-border">
+            <div className="flex items-center gap-3 text-red-600 mb-4"><AlertTriangle size={24} /><h3 className="text-xl font-bold text-dark">Activer le mode maintenance</h3></div>
+            <p className="text-muted mb-4">Le site sera inaccessible aux visiteurs. Seuls les administrateurs pourront se connecter.</p>
+            <p className="text-sm text-dark mb-2">Tapez <strong className="font-mono bg-background px-2 py-1 rounded">ACTIVER MAINTENANCE</strong> pour confirmer :</p>
+            <input type="text" value={maintenanceConfirmText} onChange={(e) => setMaintenanceConfirmText(e.target.value)} className="w-full px-4 py-2 rounded-xl border border-border bg-background mb-4" placeholder="ACTIVER MAINTENANCE" />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setShowMaintenanceModal(false)} className="px-4 py-2 border border-border rounded-lg hover:bg-background">Annuler</button>
+              <button onClick={() => { if (maintenanceConfirmText === 'ACTIVER MAINTENANCE') toggleMaintenanceMode(true); else setMessage({ type: 'error', text: 'La phrase saisie est incorrecte.' }); }} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-dark">Activer</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

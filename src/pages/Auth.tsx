@@ -12,7 +12,7 @@ import {
   LogIn,
   ArrowLeft,
   Eye,
-  EyeOff
+  EyeOff,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import MainLayout from '../layouts/MainLayout';
@@ -30,40 +30,17 @@ const Auth: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // États pour la visibilité des mots de passe
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // ------------------- FONCTION DE REDIRECTION -------------------
-  const redirectBasedOnRole = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      const role = profile?.role || 'user';
-      console.log('👤 Rôle détecté:', role);
-
-      if (role === 'admin' || userId === '9227cb0a-35d7-4dc9-b8e9-133083cc087b') {
-        console.log('➡️ Redirection admin vers /dashboard');
-        navigate('/dashboard', { replace: true });
-      } else {
-        console.log('➡️ Redirection user vers /mon-espace');
-        navigate('/mon-espace', { replace: true });
-      }
-    } catch (err: any) {
-      console.error('❌ Erreur récupération rôle:', err.message);
-      // Fallback admin par ID
-      if (userId === '9227cb0a-35d7-4dc9-b8e9-133083cc087b') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate('/mon-espace', { replace: true });
-      }
-    }
+  // Vérification unique via la table admins
+  const isUserAdmin = async (userId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+    return !error && !!data;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,7 +74,9 @@ const Auth: React.FC = () => {
         if (error) throw error;
 
         console.log('✅ Connexion réussie, user ID:', data.user.id);
-        await redirectBasedOnRole(data.user.id);
+        const isAdmin = await isUserAdmin(data.user.id);
+        console.log(isAdmin ? '👑 Admin détecté → /dashboard' : '👤 Utilisateur → /mon-espace');
+        navigate(isAdmin ? '/dashboard' : '/mon-espace', { replace: true });
       } else {
         console.log('📝 Tentative d\'inscription avec:', formData.email);
         const { data, error } = await supabase.auth.signUp({
@@ -117,13 +96,16 @@ const Auth: React.FC = () => {
         if (data.user) {
           const { error: updateError } = await supabase
             .from('profiles')
-            .upsert({
-              id: data.user.id,
-              full_name: formData.fullName,
-              email: formData.email,
-              phone: formData.phone,
-              role: 'user',
-            }, { onConflict: 'id' });
+            .upsert(
+              {
+                id: data.user.id,
+                full_name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                role: 'user',
+              },
+              { onConflict: 'id' }
+            );
 
           if (updateError) {
             console.error('❌ Erreur mise à jour profil:', updateError);
@@ -131,7 +113,8 @@ const Auth: React.FC = () => {
             console.log('✅ Profil créé/mis à jour avec succès');
           }
 
-          await redirectBasedOnRole(data.user.id);
+          // Un nouvel inscrit n'est jamais admin, donc redirection vers mon-espace
+          navigate('/mon-espace', { replace: true });
         }
       }
     } catch (err: any) {
@@ -140,8 +123,6 @@ const Auth: React.FC = () => {
         setError('Votre adresse email n\'est pas confirmée.');
       } else if (err.message.includes('rate limit')) {
         setError('Trop de tentatives. Patientez quelques minutes.');
-      } else if (err.message.includes('schema') || err.message.includes('relation')) {
-        setError('Erreur de base de données. Désactivez RLS sur la table profiles.');
       } else {
         setError(err.message);
       }
@@ -268,13 +249,8 @@ const Auth: React.FC = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
-                  aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
-                  ) : (
-                    <Eye className="w-4 h-4" />
-                  )}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
@@ -300,13 +276,8 @@ const Auth: React.FC = () => {
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-primary transition-colors"
-                    aria-label={showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
@@ -317,11 +288,7 @@ const Auth: React.FC = () => {
               disabled={loading}
               className="w-full bg-primary text-white py-3 rounded-full font-bold text-base hover:bg-dark transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              {loading
-                ? 'Chargement...'
-                : isLogin
-                ? 'Se connecter'
-                : "S'inscrire"}
+              {loading ? 'Chargement...' : isLogin ? 'Se connecter' : "S'inscrire"}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
@@ -334,9 +301,7 @@ const Auth: React.FC = () => {
               }}
               className="text-primary font-semibold text-sm hover:underline"
             >
-              {isLogin
-                ? "Pas encore de compte ? S'inscrire"
-                : 'Déjà un compte ? Se connecter'}
+              {isLogin ? "Pas encore de compte ? S'inscrire" : 'Déjà un compte ? Se connecter'}
             </button>
           </div>
 
