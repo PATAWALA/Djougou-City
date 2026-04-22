@@ -4,17 +4,9 @@ import { MapPin, Phone, Megaphone, Menu, X, User, LogOut, TrendingUp } from 'luc
 import { FaFacebookF, FaWhatsapp } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
 import { formatNombre } from '../utils/formatPrice';
+import {  CONTACT } from '../utils/constants';
 
-// Informations officielles CITransports
-export const CONTACT = {
-  PHONE: '+225 05 74 36 63 52',
-  ADDRESS: 'Plateau, Abidjan, Côte d\'Ivoire',
-  EMAIL: 'ci.transport225@gmail.com',
-  FACEBOOK: 'Côte d\'Ivoire Transports',
-  FACEBOOK_URL: 'https://web.facebook.com/citransports'
-};
-
-export const FOLLOWERS = 264000; // 264 K followers
+export const FOLLOWERS = 64000; // 264 K followers
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

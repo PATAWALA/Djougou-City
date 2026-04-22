@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, CheckCircle, Megaphone, Package, AlertTriangle, Newspaper, MapPin, Truck, Bus, TrendingUp, Users, CreditCard, Shield } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle,
+  Megaphone,
+  Package,
+  AlertTriangle,
+  Newspaper,
+  MapPin,
+  Truck,
+  Bus,
+  TrendingUp,
+  Users,
+  CreditCard,
+  Shield,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import PetiteAnnonceCard from '../components/PetiteAnnonceCard';
@@ -20,6 +34,9 @@ const Home: React.FC = () => {
   const [alertes, setAlertes] = useState<Alerte[]>(staticAlertes);
   const [sponsors, setSponsors] = useState<Sponsor[]>(staticSponsors);
   const [loading, setLoading] = useState(false);
+
+  // Filtre local pour la section Annonces
+  const [filtreAnnonces, setFiltreAnnonces] = useState<'tous' | 'departs' | 'annonces'>('tous');
 
   const heroImages = [
     'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&fit=crop&q=80', // Camion
@@ -77,11 +94,21 @@ const Home: React.FC = () => {
   }, []);
 
   const promosBoostees = actualites.filter((a) => a.estBoosted).slice(0, 3);
-  const annoncesTriees = [...annonces]
-    .filter(a => a.categorie === 'depart' || a.categorie === 'vente' || a.categorie === 'location')
+
+  // Annonces filtrées pour l'affichage
+  const annoncesFiltrees = annonces.filter((a) => {
+    if (filtreAnnonces === 'departs')
+      return a.categorie === 'depart' || a.categorie === 'chargement';
+    if (filtreAnnonces === 'annonces')
+      return a.categorie === 'vente' || a.categorie === 'location' || a.categorie === 'emploi' || a.categorie === 'service';
+    return true;
+  });
+
+  const annoncesTriees = [...annoncesFiltrees]
     .sort((a, b) => (b.estPremium ? 1 : 0) - (a.estPremium ? 1 : 0))
     .slice(0, 6);
-  const alertesActives = alertes.filter(a => a.estActive).slice(0, 3);
+
+  const alertesActives = alertes.filter((a) => a.estActive).slice(0, 3);
 
   return (
     <MainLayout>
@@ -89,11 +116,12 @@ const Home: React.FC = () => {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-muted">Chargement des annonces...</p>
           </div>
         </div>
       ) : (
         <>
-          {/* Hero Section - Transport */}
+          {/* Hero Section */}
           <section
             className="relative bg-cover bg-center text-white overflow-hidden transition-all duration-1000"
             style={{
@@ -111,15 +139,15 @@ const Home: React.FC = () => {
               >
                 <span className="inline-flex items-center gap-2 bg-primary/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold mb-6">
                   <MapPin className="w-4 h-4" />
-                  🇨🇮 Plateau, Abidjan • {formatNombre(FOLLOWERS)} transporteurs connectés
+                  Plateau, Abidjan • {formatNombre(FOLLOWERS)} transporteurs connectés
                 </span>
                 <h1 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold leading-tight mb-4">
-                  La plateforme N°1 des<br />
+                  La plateforme n°1 des<br />
                   <span className="text-secondary">transporteurs ivoiriens</span>
                 </h1>
                 <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl">
-                  Publiez vos départs, trouvez du fret, recevez des alertes trafic en temps réel. 
-                  Rejoignez la plus grande communauté de transport routier en Côte d'Ivoire.
+                  Publiez vos départs, trouvez du fret et recevez des alertes trafic en temps réel.
+                  Rejoignez la plus grande communauté du transport routier en Côte d'Ivoire.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link
@@ -127,7 +155,7 @@ const Home: React.FC = () => {
                     className="bg-secondary text-dark px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2"
                   >
                     <Bus className="w-5 h-5" />
-                    Je publie une annonce
+                    Publier une annonce
                   </Link>
                   <Link
                     to="/premium"
@@ -149,15 +177,14 @@ const Home: React.FC = () => {
           </section>
 
           <div className="max-w-7xl mx-auto px-4 py-8">
-            {/* Section : Comment gagner avec CITransports */}
+            {/* Opportunités de revenus */}
             <section className="mb-16 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-3xl p-8 md:p-12 border border-primary/20">
               <div className="text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">
-                  💰 Comment gagner de l'argent avec CITransports ?
+                  Développez votre activité avec CITransports
                 </h2>
                 <p className="text-muted text-lg max-w-3xl mx-auto">
-                  Que vous soyez transporteur, chargeur, mécanicien ou simple particulier, 
-                  notre plateforme vous offre plusieurs façons de générer des revenus.
+                  Transporteurs, chargeurs, mécaniciens ou commerçants : notre plateforme vous ouvre de nouvelles sources de revenus.
                 </p>
               </div>
 
@@ -166,39 +193,39 @@ const Home: React.FC = () => {
                   {
                     icon: Bus,
                     title: 'Transporteurs',
-                    description: 'Publiez vos départs GRATUITEMENT et remplissez vos cars. Gagnez jusqu\'à 150 000 F/jour en moyenne.',
+                    description: 'Publiez vos départs et remplissez vos cars. Gagnez en moyenne 150 000 F par jour.',
                     gain: '150 000 F/jour',
                     color: 'bg-blue-100 text-blue-700',
                     link: '/publier',
-                    linkText: 'Publier un départ'
+                    linkText: 'Publier un départ',
                   },
                   {
                     icon: Package,
                     title: 'Propriétaires de camions',
-                    description: 'Trouvez du fret rapidement. Location de camions avec ou sans chauffeur. Jusqu\'à 75 000 F/jour.',
+                    description: 'Trouvez du fret rapidement. Location avec ou sans chauffeur. Jusqu\'à 75 000 F/jour.',
                     gain: '75 000 F/jour',
                     color: 'bg-green-100 text-green-700',
                     link: '/annonces',
-                    linkText: 'Voir le fret'
+                    linkText: 'Voir le fret',
                   },
                   {
                     icon: TrendingUp,
-                    title: 'Sponsors / Agences',
-                    description: 'Boostez votre visibilité. Apparaissez en tête des recherches. +300% de contacts en moyenne.',
+                    title: 'Sponsors & Agences',
+                    description: 'Boostez votre visibilité et apparaissez en tête des recherches. +300% de contacts.',
                     gain: '+300% visibilité',
                     color: 'bg-purple-100 text-purple-700',
                     link: '/premium',
-                    linkText: 'Devenir Sponsor'
+                    linkText: 'Devenir Sponsor',
                   },
                   {
                     icon: Users,
                     title: 'Partenaires',
-                    description: 'Garages, stations, vendeurs de pièces. Référencez votre activité et attirez des clients qualifiés.',
+                    description: 'Garages, stations, vendeurs de pièces : référencez votre activité et attirez des clients qualifiés.',
                     gain: 'Clients ciblés',
                     color: 'bg-orange-100 text-orange-700',
                     link: '/contact',
-                    linkText: 'Devenir partenaire'
-                  }
+                    linkText: 'Devenir partenaire',
+                  },
                 ].map((item, index) => (
                   <motion.div
                     key={index}
@@ -225,7 +252,7 @@ const Home: React.FC = () => {
               </div>
             </section>
 
-            {/* Section Promos Boostées */}
+            {/* Promos boostées */}
             {promosBoostees.length > 0 && (
               <section className="mb-16">
                 <div className="flex items-center justify-between mb-6">
@@ -233,11 +260,11 @@ const Home: React.FC = () => {
                     <div className="p-2 bg-secondary/20 rounded-full">
                       <Newspaper className="w-6 h-6 text-secondary" />
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">🎉 Promos et Offres</h2>
+                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Offres et promotions</h2>
                     <span className="bg-secondary/20 text-dark text-sm font-semibold px-3 py-1 rounded-full">Boostés</span>
                   </div>
                   <Link to="/actualites" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                    Toutes les promos <ArrowRight className="w-4 h-4" />
+                    Toutes les offres <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
 
@@ -260,7 +287,7 @@ const Home: React.FC = () => {
                         />
                         <div className="absolute top-3 left-3">
                           <span className="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-                            🚀 Boosté • {formatFCFA(article.montantBoost || 0)}
+                            Boosté • {formatFCFA(article.montantBoost || 0)}
                           </span>
                         </div>
                       </div>
@@ -280,22 +307,59 @@ const Home: React.FC = () => {
               </section>
             )}
 
-            {/* Section Départs et Annonces */}
+            {/* Section Annonces avec filtres */}
             <section className="mb-16">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-primary/10 rounded-full">
                     <Bus className="w-6 h-6 text-primary" />
                   </div>
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">🚌 Départs & Annonces</h2>
+                  <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Annonces récentes</h2>
                 </div>
-                <Link
-                  to="/publier"
-                  className="bg-primary text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-dark transition-colors flex items-center gap-1"
-                >
-                  <Bus className="w-4 h-4" />
-                  Publier ({formatFCFA(PRICES.ANNONCE)})
-                </Link>
+
+                <div className="flex items-center gap-2">
+                  {/* Filtres */}
+                  <div className="flex bg-background rounded-full p-1 border border-border">
+                    <button
+                      onClick={() => setFiltreAnnonces('tous')}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        filtreAnnonces === 'tous'
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'text-muted hover:text-dark'
+                      }`}
+                    >
+                      Tous
+                    </button>
+                    <button
+                      onClick={() => setFiltreAnnonces('departs')}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        filtreAnnonces === 'departs'
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'text-muted hover:text-dark'
+                      }`}
+                    >
+                      Départs / Fret
+                    </button>
+                    <button
+                      onClick={() => setFiltreAnnonces('annonces')}
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                        filtreAnnonces === 'annonces'
+                          ? 'bg-primary text-white shadow-sm'
+                          : 'text-muted hover:text-dark'
+                      }`}
+                    >
+                      Ventes / Services
+                    </button>
+                  </div>
+
+                  <Link
+                    to="/publier"
+                    className="bg-primary text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-dark transition-colors flex items-center gap-1 whitespace-nowrap"
+                  >
+                    <Bus className="w-4 h-4" />
+                    Publier ({formatFCFA(PRICES.ANNONCE_DEPART || 500)})
+                  </Link>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -303,14 +367,19 @@ const Home: React.FC = () => {
                   <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
                 ))}
               </div>
+              {annoncesTriees.length === 0 && (
+                <div className="text-center py-10 text-muted">
+                  Aucune annonce ne correspond à ce filtre.
+                </div>
+              )}
               <div className="text-center mt-8">
                 <Link to="/annonces" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-                  Voir tous les départs <ArrowRight className="w-4 h-4" />
+                  Voir toutes les annonces <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
             </section>
 
-            {/* Section Alertes et Sponsors */}
+            {/* Alertes et Sponsors */}
             <section className="mb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
@@ -318,7 +387,7 @@ const Home: React.FC = () => {
                     <div className="p-2 bg-red-100 rounded-full">
                       <AlertTriangle className="w-6 h-6 text-red-600" />
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">⚠️ Alertes Trafic</h2>
+                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Alertes trafic</h2>
                   </div>
                   <div className="space-y-4">
                     {alertesActives.map((alerte) => (
@@ -337,25 +406,29 @@ const Home: React.FC = () => {
                     <div className="p-2 bg-primary/10 rounded-full">
                       <Megaphone className="w-6 h-6 text-primary" />
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">⭐ Sponsors Transport</h2>
+                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Sponsors</h2>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     {sponsors
-  .filter(s => s.actif) // On garde tous les sponsors actifs, quelle que soit leur catégorie
-  .slice(0, 4)
-  .map((sponsor) => (
-    <motion.div
-      key={sponsor.id}
-      whileHover={{ y: -3 }}
-      className="bg-card rounded-xl p-4 shadow-sm border border-border flex flex-col items-center text-center"
-    >
-      <img src={sponsor.logo} alt={sponsor.nom} className="w-20 h-20 object-cover rounded-full mb-3 border-2 border-primary/20" />
-      <h4 className="font-bold text-dark text-sm">{sponsor.nom}</h4>
-      <p className="text-xs text-muted mt-1">{sponsor.categorie}</p>
-      <p className="text-xs text-primary mt-1">📍 {sponsor.localisation}</p>
-      <span className="mt-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Sponsor</span>
-    </motion.div>
-  ))}
+                      .filter((s) => s.actif)
+                      .slice(0, 4)
+                      .map((sponsor) => (
+                        <motion.div
+                          key={sponsor.id}
+                          whileHover={{ y: -3 }}
+                          className="bg-card rounded-xl p-4 shadow-sm border border-border flex flex-col items-center text-center"
+                        >
+                          <img
+                            src={sponsor.logo}
+                            alt={sponsor.nom}
+                            className="w-20 h-20 object-cover rounded-full mb-3 border-2 border-primary/20"
+                          />
+                          <h4 className="font-bold text-dark text-sm">{sponsor.nom}</h4>
+                          <p className="text-xs text-muted mt-1">{sponsor.categorie}</p>
+                          <p className="text-xs text-primary mt-1">📍 {sponsor.localisation}</p>
+                          <span className="mt-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Sponsor</span>
+                        </motion.div>
+                      ))}
                   </div>
                   <div className="mt-6 p-5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-primary/30">
                     <p className="text-dark font-semibold mb-2 flex items-center gap-2">
@@ -376,7 +449,7 @@ const Home: React.FC = () => {
               </div>
             </section>
 
-            {/* Section Pourquoi choisir CITransports */}
+            {/* Pourquoi choisir CITransports */}
             <section className="bg-card rounded-3xl p-8 md:p-12 shadow-lg border border-border mb-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
                 <motion.div
@@ -393,23 +466,33 @@ const Home: React.FC = () => {
                   <ul className="space-y-3 text-dark">
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span><strong>Gratuit</strong> pour publier vos départs de bus</span>
+                      <span>
+                        <strong>Publication gratuite</strong> pour vos départs de bus
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span><strong>Alertes trafic</strong> en temps réel (accidents, pluie, contrôles)</span>
+                      <span>
+                        <strong>Alertes trafic</strong> en temps réel (accidents, pluie, contrôles)
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span><strong>+{formatNombre(FOLLOWERS)}</strong> utilisateurs actifs chaque mois</span>
+                      <span>
+                        <strong>+{formatNombre(FOLLOWERS)}</strong> utilisateurs actifs chaque mois
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span><strong>Paiement sécurisé</strong> Mobile Money (Orange, MTN, Moov)</span>
+                      <span>
+                        <strong>Paiement sécurisé</strong> par Mobile Money (Orange, MTN, Moov)
+                      </span>
                     </li>
                     <li className="flex items-start gap-3">
                       <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span><strong>Support 7j/7</strong> par téléphone et WhatsApp</span>
+                      <span>
+                        <strong>Support 7j/7</strong> par téléphone et WhatsApp
+                      </span>
                     </li>
                   </ul>
                 </motion.div>
@@ -424,8 +507,8 @@ const Home: React.FC = () => {
                     Rejoignez la communauté
                   </h3>
                   <p className="text-white/90 mb-6">
-                    Plus de <strong className="text-2xl">{formatNombre(FOLLOWERS)}</strong> transporteurs, 
-                    chargeurs et voyageurs utilisent déjà CITransports.
+                    Plus de <strong className="text-2xl">{formatNombre(FOLLOWERS)}</strong> transporteurs, chargeurs
+                    et voyageurs utilisent déjà CITransports.
                   </p>
                   <div className="flex items-center gap-4 mb-6">
                     <div className="bg-white/20 p-3 rounded-full">

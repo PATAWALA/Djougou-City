@@ -103,7 +103,7 @@ export const annoncesData: Annonce[] = [
     datePublication: '2026-04-15',
     estPremium: false,
     vues: 156,
-    images: ['https://images.unsplash.com/photo-1581092335871-4c7c80b9b5c4?w=600&h=400&fit=crop']
+    images: ['https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=1600&fit=crop&q=80']
   },
   {
     id: '9',

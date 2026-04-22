@@ -38,12 +38,15 @@ const Actualites: React.FC = () => {
 
   const categories = [
     { id: 'toutes', label: 'Toutes les offres' },
-    { id: 'promos', label: '🚌 Promos' },
-    { id: 'nouveautes', label: '🆕 Nouveautés' },
-    { id: 'conseils', label: '💡 Conseils' },
-    { id: 'reglementation', label: '📋 Réglementation' },
-    { id: 'evenements', label: '🎉 Événements' },
+    { id: 'promos', label: 'Promos' },
+    { id: 'nouveautes', label: 'Nouveautés' },
+    { id: 'conseils', label: 'Conseils' },
+    { id: 'reglementation', label: 'Réglementation' },
+    { id: 'evenements', label: 'Événements' },
   ] as const;
+
+  // Image de fond pour le hero – photo d'un bus en Côte d'Ivoire (libre de droits)
+  const heroBackgroundImage = 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&fit=crop&q=80';
 
   useEffect(() => {
     const fetchActualites = async () => {
@@ -98,9 +101,13 @@ const Actualites: React.FC = () => {
 
   return (
     <MainLayout>
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-primary to-secondary text-white py-14">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* Hero avec image de fond */}
+      <section
+        className="relative bg-cover bg-center text-white py-20 md:py-28"
+        style={{ backgroundImage: `url('${heroBackgroundImage}')` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40"></div>
+        <div className="relative max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -108,25 +115,26 @@ const Actualites: React.FC = () => {
             className="max-w-3xl"
           >
             <div className="flex items-center gap-3 mb-4">
-              <Newspaper className="w-8 h-8 text-white" />
-              <span className="bg-white/20 text-white px-4 py-1 rounded-full text-sm font-bold">
-                {actualites.length} offres et actus ce mois
+              <Newspaper className="w-8 h-8 text-secondary" />
+              <span className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-bold">
+                {actualites.length} offres et actualités ce mois
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               Promos & Actus Transport
             </h1>
-            <p className="text-xl text-white/90 mb-6">
-              Promos sur les billets, nouvelles lignes, conseils routiers : tout pour les transporteurs et voyageurs ivoiriens.
+            <p className="text-xl text-white/90 mb-6 max-w-2xl">
+              Promotions sur les billets, nouvelles lignes, conseils pratiques et actualités réglementaires
+              pour les professionnels de la route en Côte d'Ivoire.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/publier"
-                className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-gray-100 transition-all"
+                to="/publier/article/packs"
+                className="bg-secondary text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-lg"
               >
                 <Zap className="w-5 h-5" />
-                Booster une promo
-                <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
+                Booster une offre
+                <span className="bg-dark/10 px-3 py-1 rounded-full text-sm">
                   {formatFCFA(PRICES.BOOST_ARTICLE)}
                 </span>
               </Link>
@@ -144,7 +152,7 @@ const Actualites: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
-                placeholder="Rechercher une promo, une actu..."
+                placeholder="Rechercher une offre, une actualité..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-8 py-2 rounded-full border border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
@@ -267,7 +275,7 @@ const Actualites: React.FC = () => {
                   <div className="p-1.5 bg-secondary/20 rounded-full">
                     <Award className="w-4 h-4 text-secondary" />
                   </div>
-                  <h2 className="text-xl font-display font-bold text-dark">🔥 Offre boostée</h2>
+                  <h2 className="text-xl font-display font-bold text-dark">Offre à la une</h2>
                   <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
                     Boostée
                   </span>
@@ -340,7 +348,7 @@ const Actualites: React.FC = () => {
             {/* Autres articles boostés */}
             {boostedArticles.length > 1 && (
               <section className="mb-12">
-                <h3 className="text-lg font-bold text-dark mb-4">🚀 Également boostés</h3>
+                <h3 className="text-lg font-bold text-dark mb-4">Offres également boostées</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {boostedArticles.slice(1).map((article) => (
                     <motion.article
@@ -378,7 +386,7 @@ const Actualites: React.FC = () => {
             {/* Liste standard */}
             <section>
               <h2 className="text-xl font-display font-bold text-dark mb-5">
-                {selectedCategorie === 'toutes' ? '📰 Toutes les actus transport' : categories.find((c) => c.id === selectedCategorie)?.label}
+                {selectedCategorie === 'toutes' ? 'Toutes les actualités' : categories.find((c) => c.id === selectedCategorie)?.label}
                 <span className="text-muted text-base font-normal ml-2">({regularArticles.length})</span>
               </h2>
 
@@ -436,13 +444,13 @@ const Actualites: React.FC = () => {
                   {/* CTA Boost */}
                   <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-5 text-white">
                     <Zap className="w-7 h-7 mb-3" />
-                    <h4 className="text-lg font-bold mb-1">Boostez votre promo</h4>
+                    <h4 className="text-lg font-bold mb-1">Boostez votre offre</h4>
                     <p className="text-white/80 text-sm mb-3">
                       Touchez +{formatNombre(FOLLOWERS)} voyageurs et transporteurs.
                     </p>
                     <p className="text-2xl font-bold mb-3">{formatFCFA(PRICES.BOOST_ARTICLE)}</p>
                     <Link
-                      to="/publier?type=article"
+                      to="/publier/article/packs"
                       className="block w-full bg-white text-primary text-center py-2.5 rounded-full font-semibold text-sm hover:shadow-md transition-all"
                     >
                       Booster maintenant
@@ -453,7 +461,7 @@ const Actualites: React.FC = () => {
                   <div className="bg-card rounded-2xl p-5 border border-border">
                     <h4 className="font-bold text-dark mb-3 flex items-center gap-1.5">
                       <TrendingUp className="w-4 h-4 text-primary" />
-                      Les + consultées
+                      Les plus consultées
                     </h4>
                     <div className="space-y-3">
                       {filteredArticles
@@ -471,17 +479,17 @@ const Actualites: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Revenus potentiels */}
+                  {/* Visibilité */}
                   <div className="bg-success/5 rounded-2xl p-5 border border-success/20">
-                    <p className="text-sm text-dark font-medium mb-1">💰 Boostez votre visibilité</p>
+                    <p className="text-sm text-dark font-medium mb-1">Boostez votre visibilité</p>
                     <p className="text-xs text-muted mb-2">
-                      Une promo boostée génère en moyenne 3x plus de contacts.
+                      Une offre boostée génère en moyenne 3 fois plus de contacts.
                     </p>
                     <p className="text-lg font-bold text-success">Jusqu'à 300% d'appels</p>
                     <p className="text-xs text-muted mt-1">par rapport à une annonce classique</p>
                   </div>
 
-                  {/* Nouveautés rapides */}
+                  {/* Dernières lignes */}
                   <div className="bg-blue-50 rounded-2xl p-5 border border-blue-200">
                     <h4 className="font-bold text-dark mb-2 flex items-center gap-1">
                       <Bus className="w-4 h-4 text-blue-600" />

@@ -15,13 +15,16 @@ import MainLayout from '../layouts/MainLayout';
 import AlerteCard from '../components/NecrologieCard';
 import { supabase } from '../lib/supabase';
 import { alertesData as staticAlertes } from '../data/necrologies';
-import {  CONTACT } from '../utils/constants';
+import { CONTACT } from '../utils/constants';
 import type { Alerte } from '../types';
 
 const AlertesTrafic: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [alertes, setAlertes] = useState<Alerte[]>(staticAlertes);
   const [loading, setLoading] = useState(false);
+
+  // Image de fond pour le hero (route, trafic)
+  const heroBackground = 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&fit=crop&q=80';
 
   useEffect(() => {
     const fetchAlertes = async () => {
@@ -51,22 +54,24 @@ const AlertesTrafic: React.FC = () => {
       alerte.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Statistiques des alertes actives
   const alertesActives = alertes.filter(a => a.estActive);
   const alertesCritiques = alertesActives.filter(a => a.niveau === 'rouge' || a.niveau === 'orange');
 
   return (
     <MainLayout>
-      {/* Indicateur de chargement discret */}
       {loading && (
         <div className="fixed bottom-4 right-4 z-50 bg-card shadow-lg rounded-full px-4 py-2 text-sm text-muted border border-border">
           Mise à jour des alertes trafic...
         </div>
       )}
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-red-900 to-orange-800 text-white py-14">
-        <div className="max-w-7xl mx-auto px-4">
+      {/* Hero avec image de fond */}
+      <section
+        className="relative bg-cover bg-center text-white py-20 md:py-28"
+        style={{ backgroundImage: `url('${heroBackground}')` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/40"></div>
+        <div className="relative max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -74,20 +79,20 @@ const AlertesTrafic: React.FC = () => {
           >
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-8 h-8 text-yellow-400" />
-              <span className="bg-white/10 backdrop-blur-sm px-4 py-1 rounded-full text-sm">
+              <span className="bg-white/10 backdrop-blur-sm px-4 py-1 rounded-full text-sm font-medium">
                 Info trafic en temps réel
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
               Alertes routières et perturbations
             </h1>
-            <p className="text-xl text-gray-300 mb-6">
+            <p className="text-xl text-white/90 mb-6 max-w-2xl">
               Accidents, contrôles, météo, état des routes : restez informé pour mieux planifier vos trajets.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                to="/publier"
-                className="bg-yellow-500 text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all"
+                to="/publier/alerte/packs"
+                className="bg-yellow-500 text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all shadow-lg"
               >
                 <Plus className="w-5 h-5" />
                 Signaler une alerte
@@ -113,7 +118,7 @@ const AlertesTrafic: React.FC = () => {
             <Radio className="w-6 h-6 text-blue-600 shrink-0" />
             <div>
               <p className="text-dark">
-                "CITransports relaie les informations trafic de sources officielles (OSER, SODEXAM, Police) 
+                "CITransports relaie les informations trafic de sources officielles (OSER, SODEXAM, Police)
                 et de la communauté des transporteurs. Vérifiez toujours les conditions avant de prendre la route."
               </p>
               <p className="text-sm text-muted mt-2">— L'équipe CITransports</p>
@@ -230,9 +235,8 @@ const AlertesTrafic: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Gratuité */}
             <div className="bg-card rounded-2xl p-6 border border-border">
-              <h4 className="font-bold text-dark mb-3">Service 100% gratuit</h4>
+              <h4 className="font-bold text-dark mb-3">Service gratuit</h4>
               <p className="text-3xl font-display font-bold text-green-600 mb-2">
                 Gratuit
               </p>
@@ -244,7 +248,6 @@ const AlertesTrafic: React.FC = () => {
               </p>
             </div>
 
-            {/* Contact urgence */}
             <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
               <h4 className="font-bold text-dark mb-4 flex items-center gap-2">
                 <Phone className="w-5 h-5 text-primary" />
@@ -262,7 +265,6 @@ const AlertesTrafic: React.FC = () => {
               </a>
             </div>
 
-            {/* Sources */}
             <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
               <h4 className="font-bold text-dark mb-3 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-blue-600" />
@@ -303,7 +305,7 @@ const AlertesTrafic: React.FC = () => {
               Signaler une alerte (gratuit)
             </Link>
             <a
-              href={`https://wa.me/${CONTACT}`}
+              href={`https://wa.me/${CONTACT.PHONE.replace(/\D/g, '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white px-7 py-3 rounded-full font-bold transition-all flex items-center gap-2"

@@ -34,7 +34,7 @@ const Annonces: React.FC = () => {
 
   // Catégories orientées transport
   const categories = [
-    { id: 'toutes', label: 'Tous les départs', icon: Bus },
+    { id: 'toutes', label: 'Toutes les annonces', icon: Bus },
     { id: 'depart', label: 'Départs bus/car', icon: Bus },
     { id: 'arrivage', label: 'Arrivages', icon: MapPin },
     { id: 'chargement', label: 'Fret / Chargements', icon: Package },
@@ -80,7 +80,7 @@ const Annonces: React.FC = () => {
       {/* Indicateur de chargement discret */}
       {loading && (
         <div className="fixed bottom-4 right-4 z-50 bg-card shadow-lg rounded-full px-4 py-2 text-sm text-muted border border-border">
-          Mise à jour des départs...
+          Mise à jour des annonces...
         </div>
       )}
 
@@ -93,23 +93,23 @@ const Annonces: React.FC = () => {
             className="max-w-3xl"
           >
             <h1 className="text-3xl md:text-5xl font-display font-bold mb-3">
-              🚌 Départs, fret et annonces de transport
+              Départs, fret et annonces de transport
             </h1>
             <p className="text-lg md:text-xl text-white/90 mb-6">
               Consultez les départs de bus, trouvez du fret ou proposez vos services.
               Une communauté de {formatNombre(FOLLOWERS)} transporteurs et voyageurs.
             </p>
             <div className="flex flex-wrap gap-4">
-             <Link
-  to="/publier"
-  className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:shadow-xl transition-all"
->
-  <Plus className="w-5 h-5" />
-  Publier une annonces
-  <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
-    {formatFCFA(PRICES.ANNONCE_DEPART)}
-  </span>
-</Link>
+              <Link
+                to="/publier"
+                className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:shadow-xl transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Publier une annonce
+                <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
+                  {formatFCFA(PRICES.ANNONCE_DEPART)}
+                </span>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -178,7 +178,7 @@ const Annonces: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile (identique mais avec catégories adaptées) */}
+          {/* Mobile */}
           <div className="lg:hidden">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -253,7 +253,7 @@ const Annonces: React.FC = () => {
               <div className="p-1.5 bg-secondary/20 rounded-full">
                 <TrendingUp className="w-4 h-4 text-secondary" />
               </div>
-              <h2 className="text-xl font-display font-bold text-dark">🔥 Départs boostés</h2>
+              <h2 className="text-xl font-display font-bold text-dark">Annonces en avant</h2>
               <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
                 Premium
               </span>
@@ -275,7 +275,7 @@ const Annonces: React.FC = () => {
         <section id="annonces-liste">
           <h2 className="text-xl font-display font-bold text-dark mb-5">
             {selectedCategorie === 'toutes'
-              ? '🚌 Tous les départs et annonces'
+              ? 'Toutes les annonces'
               : categories.find((c) => c.id === selectedCategorie)?.label}
             <span className="text-muted text-base font-normal ml-2">({filteredAnnonces.length})</span>
           </h2>
@@ -283,7 +283,7 @@ const Annonces: React.FC = () => {
           {filteredAnnonces.length === 0 ? (
             <div className="text-center py-16">
               <Bus className="w-16 h-16 text-muted mx-auto mb-4" />
-              <p className="text-xl text-muted">Aucun départ ou annonce trouvé</p>
+              <p className="text-xl text-muted">Aucune annonce trouvée</p>
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -321,7 +321,7 @@ const Annonces: React.FC = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                  <span>Départ gratuit ou options boostées pour plus de réservations</span>
+                  <span>Annonce simple à {formatFCFA(PRICES.ANNONCE_DEPART)} ou options boostées pour plus de contacts</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
@@ -330,9 +330,9 @@ const Annonces: React.FC = () => {
               </ul>
             </div>
             <div className="bg-background rounded-2xl p-6">
-              <p className="text-dark font-medium mb-2">💰 Publication de départ</p>
+              <p className="text-dark font-medium mb-2">Publication d'annonce</p>
               <p className="text-3xl font-display font-bold text-primary mb-1">
-                {PRICES.ANNONCE === 0 ? 'Gratuit' : formatFCFA(PRICES.ANNONCE)}
+                {formatFCFA(PRICES.ANNONCE_DEPART)}
               </p>
               <p className="text-sm text-muted mb-4">Options de visibilité à partir de {formatFCFA(PRICES.ANNONCE_STANDARD)}</p>
               <Link
