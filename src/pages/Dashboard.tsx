@@ -119,19 +119,20 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [loginTime]);
 
-  const [stats] = useState<DashboardStats>({
-    totalRevenus: 175000,
-    utilisateurs: 52,
-    annoncesActives: 28,
-    articlesBoostes: 5,
-    vuesTotales: 18900,
-    evolution: {
-      revenus: 15.2,
-      utilisateurs: 10.5,
-      annonces: 5.8,
-      vues: 22.1,
-    },
-  });
+  // Remplacer le useState de stats par :
+const [stats] = useState<DashboardStats>({
+  totalRevenus: 175000,
+  utilisateurs: 52,
+  annoncesActives: 28,
+  alertesEnCours: staticAlertes.filter(a => a.estActive).length, 
+  vuesTotales: 18900,
+  evolution: {
+    revenus: 15.2,
+    utilisateurs: 10.5,
+    annonces: 5.8,
+    vues: 22.1,
+  },
+});
 
   const [users, setUsers] = useState<Profile[]>([]);
   const [admins, setAdmins] = useState<Admin[]>([]);
