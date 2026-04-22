@@ -1,17 +1,14 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ThumbsUp, MessageCircle, Share2, Bookmark, User, Calendar } from 'lucide-react';
+import { ArrowLeft, ThumbsUp, MessageCircle, Share2, Bookmark, User, Calendar, Zap } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { actualitesData } from '../data/actualites';
-import { formatDate, formatNombre } from '../utils/formatPrice';
+import { formatDate, formatNombre, formatFCFA } from '../utils/formatPrice';
 
-const ArticleDetail: React.FC = () => {
+const PromoDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-
-  console.log('ArticleDetail - ID reçu:', id);
-  console.log('Articles disponibles:', actualitesData.map(a => a.id));
 
   const article = actualitesData.find(a => a.id === id);
 
@@ -19,10 +16,10 @@ const ArticleDetail: React.FC = () => {
     return (
       <MainLayout>
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-          <h2 className="text-2xl font-bold text-dark mb-4">Article introuvable</h2>
-          <p className="text-muted mb-6">L'article avec l'ID "{id}" n'existe pas ou a été déplacé.</p>
+          <h2 className="text-2xl font-bold text-dark mb-4">Offre introuvable</h2>
+          <p className="text-muted mb-6">Cette promotion ou actualité n'existe pas ou a été supprimée.</p>
           <Link to="/actualites" className="text-primary font-semibold hover:underline">
-            Retour aux actualités
+            Retour aux promos & actus
           </Link>
         </div>
       </MainLayout>
@@ -38,7 +35,7 @@ const ArticleDetail: React.FC = () => {
           className="inline-flex items-center gap-2 text-muted hover:text-primary mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour aux actualités
+          Retour aux promos & actus
         </button>
 
         {/* En-tête */}
@@ -48,8 +45,8 @@ const ArticleDetail: React.FC = () => {
           className="mb-6"
         >
           {article.estBoosted && (
-            <span className="inline-block bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full mb-4">
-              ⚡ Article boosté
+            <span className="inline-flex items-center gap-1 bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full mb-4">
+              <Zap className="w-3 h-3" /> Offre boostée • {formatFCFA(article.montantBoost || 0)}
             </span>
           )}
           <h1 className="text-3xl md:text-4xl font-display font-bold text-dark mb-4">
@@ -111,4 +108,4 @@ const ArticleDetail: React.FC = () => {
   );
 };
 
-export default ArticleDetail;
+export default PromoDetail;

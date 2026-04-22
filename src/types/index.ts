@@ -8,7 +8,7 @@ export interface Sponsor {
   montant: number;
   dateExpiration: string;
   actif: boolean;
-  categorie: 'restaurant' | 'boutique' | 'service' | 'transport'; // ✅ "transport" existe déjà
+  categorie: 'restaurant' | 'boutique' | 'service' | 'transport' | 'station' | 'garage' | 'pieces';
 }
 
 export interface Annonce {
@@ -16,8 +16,7 @@ export interface Annonce {
   titre: string;
   description: string;
   prix: number | null;
-  // ✅ Ajout de la catégorie "depart" pour les trajets de bus
-  categorie: 'vente' | 'location' | 'service' | 'emploi' | 'don' | 'perdu' | 'recherche' | 'depart';
+  categorie: 'vente' | 'location' | 'service' | 'emploi' | 'depart' | 'arrivage' | 'chargement';
   contact: string;
   localisation: string;
   datePublication: string;
@@ -26,18 +25,16 @@ export interface Annonce {
   images: string[];
 }
 
-export interface Necrologie {
+export interface Alerte {
   id: string;
-  // ✅ On garde le nom "nomDefunt" mais on l'utilisera pour "Titre de l'alerte"
-  nomDefunt: string;
-  dateDeces: string;
-  dateEnterrement: string;
-  lieuEnterrement: string;
-  famille: string;
-  contact: string;
-  montantPaye: number;
-  message?: string;
-  photo?: string;
+  titre: string;
+  description: string;
+  type: 'meteo' | 'accident' | 'controle' | 'route' | 'carburant' | 'circulation' | 'manifestation';
+  niveau: 'vert' | 'jaune' | 'orange' | 'rouge';
+  datePublication: string;
+  localisation: string;
+  source: string;
+  estActive: boolean;
 }
 
 export interface Actualite {
@@ -52,20 +49,21 @@ export interface Actualite {
   commentaires: number;
   partages: number;
   image?: string;
+  categorie?: 'transport' | 'logistique' | 'reglementation' | 'infrastructures';
 }
 
 export interface RevenueStats {
   totalMensuel: number;
   sponsorsActifs: number;
   annoncesActives: number;
-  necrologiesMois: number;
+  alertesActives: number;
   premiumAbonnes: number;
   objectifMensuel: number;
   revenusParSource: {
     sponsors: number;
     annonces: number;
-    necrologie: number;
     premium: number;
+    publicites: number;
   };
 }
 
@@ -74,15 +72,17 @@ export interface Profile {
   full_name: string | null;
   email: string;
   phone: string | null;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'transporteur' | 'chargeur';
   created_at: string;
+  compagnie?: string;
+  flotte?: number;
 }
 
 export interface DashboardStats {
   totalRevenus: number;
   utilisateurs: number;
   annoncesActives: number;
-  articlesBoostes: number;
+  alertesEnCours: number;
   vuesTotales: number;
   evolution: {
     revenus: number;
@@ -94,9 +94,9 @@ export interface DashboardStats {
 
 export interface Transaction {
   id: number;
-  type: string;
+  type: 'sponsor' | 'annonce' | 'premium' | 'publicite';
   client: string;
   montant: number;
   date: string;
-  statut: string;
+  statut: 'complete' | 'en_attente' | 'echoue';
 }

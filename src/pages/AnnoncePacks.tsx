@@ -1,84 +1,83 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Camera, TrendingUp, Award } from 'lucide-react';
+import { Check, ArrowRight, Bus, Zap, Crown } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
 
 const AnnoncePacks: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedPack, setSelectedPack] = useState('standard');
+  const [selectedPack, setSelectedPack] = useState('basic');
 
   const packs = [
     {
       id: 'basic',
-      name: 'Basic',
-      price: PRICES.ANNONCE_BASIC || 500,
-      icon: Camera,
-      description: 'L\'essentiel pour une annonce simple et efficace.',
+      name: 'Annonce Simple',
+      price: PRICES.ANNONCE_DEPART || 500,
+      icon: Bus,
+      description: 'Publiez votre annonce pour 500 FCFA.',
       features: [
-        'Publication active pendant 30 jours',
-        '1 photo pour illustrer votre annonce',
-        'Vos coordonnées téléphoniques affichées',
+        'Publication visible 30 jours',
+        '1 photo',
+        'Coordonnées affichées',
         'Statistiques de vues basiques',
       ],
       additional: [
-        'Parfait pour un premier test ou un petit budget',
-        'Convient aux objets d\'occasion, services ponctuels',
+        'Idéal pour une annonce ponctuelle',
+        'Paiement unique de 500 FCFA',
       ],
-      cible: 'Particuliers, petits budgets',
+      cible: 'Particuliers, petits transporteurs',
       badge: null,
       color: 'border-gray-300',
     },
     {
       id: 'standard',
-      name: 'Standard',
-      price: PRICES.ANNONCE_STANDARD || 1000,
-      icon: TrendingUp,
-      description: 'Plus de photos et une meilleure visibilité.',
+      name: 'Annonce Boostée',
+      price: PRICES.ANNONCE_STANDARD || 2500,
+      icon: Zap,
+      description: 'Plus de visibilité pour attirer plus de contacts.',
       features: [
-        'Tous les avantages du pack Basic',
-        '3 photos pour mieux présenter votre bien ou service',
-        'Remontée automatique en tête de liste après 7 jours',
-        'Badge "Recommandé" pour attirer l\'attention',
-        'Statistiques avancées (vues, contacts)',
+        'Tous les avantages du pack Simple',
+        '3 photos maximum',
+        'Mise en avant 7 jours',
+        'Badge "Boosté"',
+        'Partage sur nos réseaux sociaux',
       ],
       additional: [
-        'Meilleur rapport qualité/prix',
-        'Recommandé pour la majorité des annonces',
-        'Augmente significativement vos chances de vente',
+        'Recommandé pour une meilleure exposition',
+        'Attire plus de prospects',
       ],
-      cible: 'Vendeurs réguliers, locations, services professionnels',
-      badge: { text: 'Recommandé', color: 'bg-secondary text-dark' },
+      cible: 'Transporteurs réguliers, professionnels',
+      badge: { text: 'Populaire', color: 'bg-secondary text-dark' },
       color: 'border-secondary',
     },
     {
       id: 'premium',
-      name: 'Premium',
-      price: PRICES.ANNONCE_PREMIUM || 2500,
-      icon: Award,
-      description: 'Visibilité maximale et mise en avant exclusive.',
+      name: 'Annonce Premium',
+      price: PRICES.ANNONCE_PREMIUM || 5000,
+      icon: Crown,
+      description: 'Visibilité maximale et support prioritaire.',
       features: [
-        'Tous les avantages du pack Standard',
-        '5 photos pour une galerie complète',
-        'Mise en avant prioritaire pendant 15 jours',
-        'Badge "Premium" doré pour une crédibilité renforcée',
-        'Support client prioritaire (réponse sous 2h)',
+        'Tous les avantages du pack Boosté',
+        '5 photos',
+        'Épinglé en tête de liste 7 jours',
+        'Badge "Premium"',
+        'Partage prioritaire sur Facebook (264K)',
+        'Support WhatsApp dédié',
       ],
       additional: [
-        'Idéal pour les biens de valeur, offres d\'emploi, services haut de gamme',
-        'Maximisez votre visibilité et votre taux de conversion',
-        'Votre annonce est vue en premier par les visiteurs',
+        'Idéal pour les périodes de forte demande',
+        'Maximisez votre visibilité',
       ],
-      cible: 'Professionnels, biens immobiliers, véhicules, offres premium',
+      cible: 'Grandes compagnies, offres spéciales',
       badge: { text: 'Premium', color: 'bg-primary text-white' },
       color: 'border-primary',
     },
   ];
 
   const handleContinue = () => {
-    navigate(`/paiement?type=annonce&pack=${selectedPack}&redirect=/publier/annonce/form`);
+    navigate(`/paiement?type=depart&pack=${selectedPack}&redirect=/publier/depart/form`);
   };
 
   return (
@@ -86,13 +85,14 @@ const AnnoncePacks: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">
-            Choisissez le pack pour votre annonce
+            🚌 Choisissez la formule pour votre annonce
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Que vous vendiez un objet, proposiez un service ou recrutiez, trouvez le niveau de visibilité adapté à votre besoin.
+            Publiez votre annonce de transport et touchez des milliers de voyageurs et professionnels.
           </p>
         </div>
 
+        {/* Grille des packs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {packs.map((pack) => {
             const Icon = pack.icon;
@@ -102,9 +102,7 @@ const AnnoncePacks: React.FC = () => {
                 key={pack.id}
                 whileHover={{ y: -5 }}
                 className={`relative bg-card rounded-2xl shadow-lg border-2 transition-all cursor-pointer ${
-                  isSelected
-                    ? 'border-primary ring-4 ring-primary/20'
-                    : `${pack.color} hover:border-primary/50`
+                  isSelected ? 'border-primary ring-4 ring-primary/20' : `${pack.color} hover:border-primary/50`
                 }`}
                 onClick={() => setSelectedPack(pack.id)}
               >
@@ -123,7 +121,7 @@ const AnnoncePacks: React.FC = () => {
                   <p className="text-sm text-muted mb-4">{pack.description}</p>
                   <div className="mb-4">
                     <span className="text-3xl font-display font-bold text-primary">
-                      {formatFCFA(pack.price)}
+                      {pack.price === 0 ? 'Gratuit' : formatFCFA(pack.price)}
                     </span>
                     <span className="text-sm text-muted ml-1">/ annonce</span>
                   </div>
@@ -145,12 +143,10 @@ const AnnoncePacks: React.FC = () => {
                       ))}
                     </ul>
                   </div>
-                  <div className="mt-4 text-xs text-muted italic">
-                    Cible : {pack.cible}
-                  </div>
+                  <div className="mt-4 text-xs text-muted italic">🎯 Cible : {pack.cible}</div>
                   {isSelected && (
                     <div className="mt-4 text-success text-sm font-semibold flex items-center gap-1 justify-center">
-                      <Check className="w-4 h-4" /> Pack sélectionné
+                      <Check className="w-4 h-4" /> Formule sélectionnée
                     </div>
                   )}
                 </div>
@@ -160,14 +156,11 @@ const AnnoncePacks: React.FC = () => {
         </div>
 
         <div className="text-center">
-          <button
-            onClick={handleContinue}
-            className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors shadow-lg inline-flex items-center gap-2"
-          >
+          <button onClick={handleContinue} className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors shadow-lg inline-flex items-center gap-2">
             Continuer vers le paiement <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-xs text-muted mt-4">
-            Paiement sécurisé. Votre annonce sera publiée immédiatement après confirmation.
+            Paiement sécurisé par Mobile Money.
           </p>
         </div>
       </div>

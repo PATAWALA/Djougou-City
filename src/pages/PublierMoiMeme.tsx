@@ -1,181 +1,112 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Heart, Newspaper, Check, ArrowRight, HelpCircle } from 'lucide-react';
+import { Bus, AlertTriangle, Zap, Check, ArrowRight, HelpCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
 import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
 
+type PublicationType = 'depart' | 'alerte' | 'promo';
+
 const PublierMoiMeme: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState<'annonce' | 'necrologie' | 'article'>('annonce');
+  const [selectedType, setSelectedType] = useState<PublicationType>('depart');
   const [selectedPack, setSelectedPack] = useState<string>('');
 
-  // Définition des types
   const types = [
-    { id: 'annonce', label: 'Petite Annonce', icon: ShoppingBag, description: 'Vendez un objet, proposez un service ou recrutez.' },
-    { id: 'necrologie', label: 'Avis de Décès', icon: Heart, description: 'Annoncez un décès et les obsèques à la communauté.' },
-    { id: 'article', label: 'Article Boosté', icon: Newspaper, description: 'Donnez de la visibilité à votre actualité ou communiqué.' },
+    { id: 'depart', label: 'Annonce transport', icon: Bus, description: 'Publiez un départ, fret, vente...' },
+    { id: 'alerte', label: 'Alerte trafic', icon: AlertTriangle, description: 'Signalez un incident sur la route.' },
+    { id: 'promo', label: 'Promo / Offre', icon: Zap, description: 'Boostez une promotion ou une actualité transport.' },
   ];
 
-  // Définition détaillée des packs pour chaque type
-  const packsData = {
-    annonce: {
-      title: 'Packs pour Petites Annonces',
+  const packsData: Record<Exclude<PublicationType, 'alerte'>, { title: string; packs: any[] }> = {
+    depart: {
+      title: 'Packs pour Annonces Transport',
       packs: [
         {
           id: 'basic',
-          name: 'Basic',
-          price: PRICES.ANNONCE_BASIC || 500,
-          description: 'Visibilité standard pour une annonce simple.',
-          features: [
-            'Publication 30 jours',
-            '1 photo',
-            'Coordonnées visibles',
-            'Statistiques de vues basiques',
-          ],
+          name: 'Annonce Simple',
+          price: PRICES.ANNONCE_DEPART || 500,
+          description: 'Publiez votre annonce pour 500 FCFA.',
+          features: ['Publication 30 jours', '1 photo', 'Coordonnées affichées', 'Statistiques de vues basiques'],
           recommended: false,
         },
         {
           id: 'standard',
-          name: 'Standard',
-          price: PRICES.ANNONCE_STANDARD || 1000,
-          description: 'Plus de visibilité et de photos.',
-          features: [
-            'Tout du pack Basic',
-            '3 photos',
-            'Remontée automatique après 7 jours',
-            'Badge "Recommandé"',
-            'Statistiques avancées',
-          ],
+          name: 'Annonce Boostée',
+          price: PRICES.ANNONCE_STANDARD || 2500,
+          description: 'Plus de visibilité pour plus de contacts.',
+          features: ['Tout du pack Simple', '3 photos', 'Mise en avant 7 jours', 'Badge "Boosté"', 'Statistiques avancées'],
           recommended: true,
         },
         {
           id: 'premium',
-          name: 'Premium',
-          price: PRICES.ANNONCE_PREMIUM || 2500,
-          description: 'Visibilité maximale et mise en avant.',
-          features: [
-            'Tout du pack Standard',
-            '5 photos',
-            'Mise en avant 15 jours',
-            'Badge "Premium" doré',
-            'Support prioritaire',
-          ],
+          name: 'Annonce Premium',
+          price: PRICES.ANNONCE_PREMIUM || 5000,
+          description: 'Visibilité maximale et support prioritaire.',
+          features: ['Tout du pack Boosté', '5 photos', 'Épinglé en tête 7 jours', 'Badge "Premium"', 'Partage Facebook (264K)'],
           recommended: false,
         },
       ],
     },
-    necrologie: {
-      title: 'Packs pour Avis de Décès',
+    promo: {
+      title: 'Packs pour Promos',
       packs: [
         {
-          id: 'simple',
-          name: 'Simple',
-          price: PRICES.NECROLOGIE_SIMPLE || 1000,
-          description: 'Publication standard pour informer la communauté.',
-          features: [
-            'Publication 30 jours',
-            '1 photo',
-            'Coordonnées de la famille',
-            'Message de condoléances court',
-          ],
-          recommended: false,
-        },
-        {
-          id: 'hommage',
-          name: 'Hommage',
-          price: PRICES.NECROLOGIE_HOMMAGE || 2500,
-          description: 'Un hommage plus complet avec plus de photos.',
-          features: [
-            'Tout du pack Simple',
-            '3 photos',
-            'Message long personnalisé',
-            'Partage sur les réseaux',
-          ],
-          recommended: true,
-        },
-        {
-          id: 'ceremonie',
-          name: 'Cérémonie',
-          price: PRICES.NECROLOGIE_CEREMONIE || 5000,
-          description: 'Annonce épinglée et visibilité maximale.',
-          features: [
-            'Tout du pack Hommage',
-            '5 photos',
-            'Épinglé en haut 7 jours',
-            'Partage Facebook prioritaire',
-            'Support dédié',
-          ],
-          recommended: false,
-        },
-      ],
-    },
-    article: {
-      title: 'Packs pour Articles Boostés',
-      packs: [
-        {
-          id: 'coupdepouce',
-          name: 'Coup de pouce',
+          id: 'basic',
+          name: 'Visibilité Basic',
           price: PRICES.BOOST_COUP_DE_POUCE || 1000,
-          description: 'Un petit boost pour plus de lecteurs.',
-          features: [
-            'Article remonté en tête de liste',
-            'Visibilité 24h',
-            'Badge "Boosté"',
-          ],
+          description: 'Un petit coup de pouce.',
+          features: ['Remontée en tête 24h', 'Badge "Boosté"'],
           recommended: false,
         },
         {
-          id: 'visibilite',
-          name: 'Visibilité',
-          price: PRICES.BOOST_VISIBILITE || 3000,
-          description: 'Visibilité prolongée pour un impact durable.',
-          features: [
-            'Article épinglé 3 jours',
-            'Mise en avant sur la page d\'accueil',
-            'Badge "Boosté"',
-            'Statistiques de lectures',
-          ],
+          id: 'standard',
+          name: 'Boost Standard',
+          price: PRICES.BOOST_ARTICLE || 3000,
+          description: 'Visibilité prolongée.',
+          features: ['Épinglé 3 jours', 'Mise en avant page accueil', 'Statistiques'],
           recommended: true,
         },
         {
-          id: 'viral',
-          name: 'Viral',
+          id: 'premium',
+          name: 'Boost Premium',
           price: PRICES.BOOST_VIRAL || 5000,
-          description: 'Touchez toute la communauté et au‑delà.',
-          features: [
-            'Épinglé 7 jours',
-            'Partage sur Facebook (28K abonnés)',
-            'Mise en avant page d\'accueil',
-            'Badge "Viral"',
-            'Rapport de performance',
-          ],
+          description: 'Impact maximal.',
+          features: ['Épinglé 7 jours', 'Partage Facebook (264K)', 'Badge "Premium"', 'Rapport détaillé'],
           recommended: false,
         },
       ],
     },
   };
 
-  const currentPacks = packsData[selectedType];
-
   const handleContinue = () => {
+    if (selectedType === 'alerte') {
+      // Redirection directe vers les packs d'alerte
+      navigate('/publier/alerte/packs');
+      return;
+    }
+
     if (!selectedPack) {
       alert('Veuillez sélectionner un pack.');
       return;
     }
-    // Rediriger vers la page de choix du parcours (moi-même / faire publier)
-    navigate(`/publier/parcours?type=${selectedType}&pack=${selectedPack}`);
+
+    if (selectedType === 'depart') {
+      navigate(`/paiement?type=depart&pack=${selectedPack}&redirect=/publier/depart/form`);
+    } else if (selectedType === 'promo') {
+      navigate(`/paiement?type=promo&pack=${selectedPack}&redirect=/publier/promo/form`);
+    }
   };
 
   return (
     <MainLayout>
       <div className="max-w-6xl mx-auto px-4 py-10">
         <h1 className="text-3xl md:text-4xl font-display font-bold text-dark text-center mb-4">
-          Choisissez votre pack
+          Choisissez votre pack de publication
         </h1>
         <p className="text-muted text-center mb-10">
-          Sélectionnez le type de publication puis le pack qui correspond à vos besoins.
+          Sélectionnez le type de contenu puis le niveau de visibilité adapté.
         </p>
 
         {/* Sélecteur de type */}
@@ -184,8 +115,8 @@ const PublierMoiMeme: React.FC = () => {
             <button
               key={type.id}
               onClick={() => {
-                setSelectedType(type.id as any);
-                setSelectedPack(''); // réinitialiser la sélection du pack
+                setSelectedType(type.id as PublicationType);
+                setSelectedPack('');
               }}
               className={`flex items-center gap-3 px-6 py-3 rounded-full font-medium transition-all ${
                 selectedType === type.id
@@ -199,76 +130,95 @@ const PublierMoiMeme: React.FC = () => {
           ))}
         </div>
 
-        {/* Description du type sélectionné */}
-        <p className="text-center text-muted mb-8">
-          {types.find((t) => t.id === selectedType)?.description}
-        </p>
-
-        {/* Grille de packs */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          {currentPacks.packs.map((pack) => (
-            <motion.div
-              key={pack.id}
-              whileHover={{ y: -5 }}
-              className={`relative bg-card rounded-2xl shadow-lg border-2 transition-all cursor-pointer ${
-                selectedPack === pack.id
-                  ? 'border-primary ring-4 ring-primary/20'
-                  : 'border-border hover:border-primary/50'
-              }`}
-              onClick={() => setSelectedPack(pack.id)}
+        {selectedType === 'alerte' ? (
+          /* Affichage spécifique pour les alertes */
+          <div className="text-center py-12">
+            <AlertTriangle className="w-20 h-20 text-primary mx-auto mb-6" />
+            <h3 className="text-2xl font-bold text-dark mb-4">Signaler une alerte trafic</h3>
+            <p className="text-muted max-w-2xl mx-auto mb-8">
+              Informez la communauté en temps réel des accidents, contrôles, pannes ou dangers sur la route.
+              Choisissez parmi nos options gratuites ou payantes selon votre besoin.
+            </p>
+            <button
+              onClick={handleContinue}
+              className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-all shadow-lg inline-flex items-center gap-2"
             >
-              {pack.recommended && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-dark text-xs font-bold px-4 py-1 rounded-full shadow-md">
-                  Recommandé
-                </div>
-              )}
-              <div className="p-6">
-                <h3 className="text-xl font-display font-bold text-dark mb-1">{pack.name}</h3>
-                <p className="text-sm text-muted mb-4">{pack.description}</p>
-                <div className="mb-6">
-                  <span className="text-3xl font-display font-bold text-primary">
-                    {formatFCFA(pack.price)}
-                  </span>
-                </div>
-                <ul className="space-y-2 mb-6">
-                  {pack.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-2 text-sm text-dark">
-                      <Check className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex items-center justify-center h-6">
-                  {selectedPack === pack.id && (
-                    <span className="text-success text-sm font-semibold flex items-center gap-1">
-                      <Check className="w-4 h-4" /> Sélectionné
-                    </span>
+              Voir les packs d'alerte <ArrowRight className="w-5 h-5" />
+            </button>
+            <p className="text-xs text-muted mt-4">
+              Gratuit ou payant, selon l'urgence de votre situation.
+            </p>
+          </div>
+        ) : (
+          <>
+            <p className="text-center text-muted mb-8">
+              {types.find((t) => t.id === selectedType)?.description}
+            </p>
+
+            {/* Grille de packs pour depart et promo */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              {packsData[selectedType as 'depart' | 'promo'].packs.map((pack) => (
+                <motion.div
+                  key={pack.id}
+                  whileHover={{ y: -5 }}
+                  className={`relative bg-card rounded-2xl shadow-lg border-2 transition-all cursor-pointer ${
+                    selectedPack === pack.id
+                      ? 'border-primary ring-4 ring-primary/20'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setSelectedPack(pack.id)}
+                >
+                  {pack.recommended && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary text-dark text-xs font-bold px-4 py-1 rounded-full shadow-md">
+                      Recommandé
+                    </div>
                   )}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-display font-bold text-dark mb-1">{pack.name}</h3>
+                    <p className="text-sm text-muted mb-4">{pack.description}</p>
+                    <div className="mb-6">
+                      <span className="text-3xl font-display font-bold text-primary">
+                        {pack.price === 0 ? 'Gratuit' : formatFCFA(pack.price)}
+                      </span>
+                    </div>
+                    <ul className="space-y-2 mb-6">
+                      {pack.features.map((feature: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2 text-sm text-dark">
+                          <Check className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="flex items-center justify-center h-6">
+                      {selectedPack === pack.id && (
+                        <span className="text-success text-sm font-semibold flex items-center gap-1">
+                          <Check className="w-4 h-4" /> Sélectionné
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-        {/* Bouton Continuer */}
-        <div className="text-center">
-          <button
-            onClick={handleContinue}
-            className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-all shadow-lg inline-flex items-center gap-2"
-          >
-            Continuer <ArrowRight className="w-5 h-5" />
-          </button>
-        </div>
+            <div className="text-center">
+              <button
+                onClick={handleContinue}
+                className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-all shadow-lg inline-flex items-center gap-2"
+              >
+                Continuer <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </>
+        )}
 
-        {/* Aide */}
         <div className="mt-8 p-5 bg-background rounded-2xl border border-border text-center">
           <p className="text-sm text-muted flex items-center justify-center gap-2">
             <HelpCircle className="w-4 h-4" />
-            Vous ne savez pas quel pack choisir ?{' '}
+            Besoin d'aide pour choisir ?{' '}
             <Link to="/contact" className="text-primary font-semibold hover:underline">
               Contactez‑nous
             </Link>
-            , un conseiller vous guidera.
           </p>
         </div>
       </div>

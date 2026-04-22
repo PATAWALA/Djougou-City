@@ -2,64 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Heart,
+  AlertTriangle,
   Phone,
-  Flower,
+  CloudRain,
   Plus,
   Search,
   X,
+  MapPin,
+  Radio,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
-import NecrologieCard from '../components/NecrologieCard';
+import AlerteCard from '../components/NecrologieCard';
 import { supabase } from '../lib/supabase';
-import { necrologiesData as staticNecrologies } from '../data/necrologies';
-import { PRICES, CONTACT } from '../utils/constants';
-import { formatFCFA } from '../utils/formatPrice';
-import type { Necrologie as NecrologieType } from '../types';
+import { alertesData as staticAlertes } from '../data/necrologies';
+import {  CONTACT } from '../utils/constants';
+import type { Alerte } from '../types';
 
-const Necrologie: React.FC = () => {
+const AlertesTrafic: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [necrologies, setNecrologies] = useState<NecrologieType[]>(staticNecrologies);
-  const [loading, setLoading] = useState(false); // plus de spinner bloquant
+  const [alertes, setAlertes] = useState<Alerte[]>(staticAlertes);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchNecrologies = async () => {
+    const fetchAlertes = async () => {
       setLoading(true);
       try {
         const { data } = await supabase
-          .from('necrologies')
+          .from('alertes')
           .select('*')
-          .gt('expires_at', new Date().toISOString())
+          .eq('estActive', true)
           .order('created_at', { ascending: false });
 
-        if (data && data.length > 0) setNecrologies(data as NecrologieType[]);
+        if (data && data.length > 0) setAlertes(data as Alerte[]);
       } catch (error) {
-        console.error('Erreur lors du chargement des avis de décès:', error);
+        console.error('Erreur lors du chargement des alertes trafic:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchNecrologies();
+    fetchAlertes();
   }, []);
 
-  const filteredNecrologies = necrologies.filter(
-    (necrologie) =>
-      necrologie.nomDefunt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      necrologie.famille.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredAlertes = alertes.filter(
+    (alerte) =>
+      alerte.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      alerte.localisation.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      alerte.type.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Statistiques des alertes actives
+  const alertesActives = alertes.filter(a => a.estActive);
+  const alertesCritiques = alertesActives.filter(a => a.niveau === 'rouge' || a.niveau === 'orange');
 
   return (
     <MainLayout>
       {/* Indicateur de chargement discret */}
       {loading && (
         <div className="fixed bottom-4 right-4 z-50 bg-card shadow-lg rounded-full px-4 py-2 text-sm text-muted border border-border">
-          Mise à jour des avis de décès...
+          Mise à jour des alertes trafic...
         </div>
       )}
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-gray-800 to-gray-900 text-white py-14">
+      <section className="bg-gradient-to-br from-red-900 to-orange-800 text-white py-14">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -67,44 +73,50 @@ const Necrologie: React.FC = () => {
             className="max-w-3xl"
           >
             <div className="flex items-center gap-3 mb-4">
-              <Heart className="w-8 h-8 text-red-400" />
+              <AlertTriangle className="w-8 h-8 text-yellow-400" />
               <span className="bg-white/10 backdrop-blur-sm px-4 py-1 rounded-full text-sm">
-                Hommage et mémoire
+                Info trafic en temps réel
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              Avis de décès et remerciements
+              Alertes routières et perturbations
             </h1>
             <p className="text-xl text-gray-300 mb-6">
-              Un espace pour honorer la mémoire de nos proches disparus et informer la communauté des obsèques.
+              Accidents, contrôles, météo, état des routes : restez informé pour mieux planifier vos trajets.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/publier"
-                className="bg-red-500 text-white px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-red-600 transition-all"
+                className="bg-yellow-500 text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all"
               >
                 <Plus className="w-5 h-5" />
-                Publier un avis de décès
+                Signaler une alerte
                 <span className="bg-white/20 px-3 py-1 rounded-full text-sm">
-                  {formatFCFA(PRICES.NECROLOGIE)}
+                  Gratuit
                 </span>
               </Link>
+              {alertesCritiques.length > 0 && (
+                <span className="bg-red-600/80 backdrop-blur-sm px-4 py-3 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  {alertesCritiques.length} alerte(s) critique(s) en cours
+                </span>
+              )}
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Message de compassion */}
+      {/* Message d'information */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-gradient-to-r from-red-50 to-gray-50 rounded-2xl p-6 border border-red-200">
+        <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-2xl p-6 border border-blue-200">
           <div className="flex items-start gap-4">
-            <Flower className="w-6 h-6 text-red-500 shrink-0" />
+            <Radio className="w-6 h-6 text-blue-600 shrink-0" />
             <div>
-              <p className="text-dark italic">
-                "DjougouCity présente ses sincères condoléances à toutes les familles en deuil.
-                Cet espace est dédié à la mémoire de nos chers disparus."
+              <p className="text-dark">
+                "CITransports relaie les informations trafic de sources officielles (OSER, SODEXAM, Police) 
+                et de la communauté des transporteurs. Vérifiez toujours les conditions avant de prendre la route."
               </p>
-              <p className="text-sm text-muted mt-2">— L'équipe DjougouCity</p>
+              <p className="text-sm text-muted mt-2">— L'équipe CITransports</p>
             </div>
           </div>
         </div>
@@ -116,7 +128,7 @@ const Necrologie: React.FC = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
           <input
             type="text"
-            placeholder="Rechercher un défunt ou une famille..."
+            placeholder="Rechercher par localisation, type d'alerte..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-12 pr-10 py-3 rounded-full border border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
@@ -132,12 +144,12 @@ const Necrologie: React.FC = () => {
         </div>
       </section>
 
-      {/* Liste des avis de décès – affichée immédiatement avec données statiques */}
+      {/* Liste des alertes */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        {filteredNecrologies.length === 0 ? (
+        {filteredAlertes.length === 0 ? (
           <div className="text-center py-20">
-            <Heart className="w-16 h-16 text-muted mx-auto mb-4" />
-            <p className="text-xl text-muted">Aucun avis de décès trouvé</p>
+            <CloudRain className="w-16 h-16 text-muted mx-auto mb-4" />
+            <p className="text-xl text-muted">Aucune alerte trouvée</p>
             <button
               onClick={() => setSearchTerm('')}
               className="mt-4 text-primary font-semibold hover:underline"
@@ -146,11 +158,23 @@ const Necrologie: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredNecrologies.map((necrologie) => (
-              <NecrologieCard key={necrologie.id} necrologie={necrologie} />
-            ))}
-          </div>
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-muted">
+                {filteredAlertes.length} alerte(s) {searchTerm && 'trouvée(s)'}
+              </p>
+              <div className="flex gap-2">
+                <span className="text-xs bg-red-100 text-red-700 px-3 py-1 rounded-full">Critique</span>
+                <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full">Alerte</span>
+                <span className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full">Vigilance</span>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAlertes.map((alerte) => (
+                <AlerteCard key={alerte.id} alerte={alerte} />
+              ))}
+            </div>
+          </>
         )}
       </section>
 
@@ -159,30 +183,30 @@ const Necrologie: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <h3 className="text-2xl font-display font-bold text-dark mb-6">
-              Comment publier un avis de décès
+              Comment signaler une alerte
             </h3>
 
             <div className="space-y-4">
               {[
                 {
                   step: 1,
-                  title: 'Contactez-nous',
-                  description: `Appelez le ${CONTACT.PHONE} ou rendez-vous à la Mairie de Djougou.`,
+                  title: 'Appelez ou utilisez WhatsApp',
+                  description: `Contactez-nous au ${CONTACT.PHONE} ou via WhatsApp pour signaler un incident.`,
                 },
                 {
                   step: 2,
-                  title: 'Fournissez les informations',
-                  description: "Nom du défunt, dates, lieu d'enterrement, photo et message.",
+                  title: 'Donnez les détails',
+                  description: "Type d'alerte (accident, pluie, contrôle...), localisation précise, gravité.",
                 },
                 {
                   step: 3,
-                  title: 'Effectuez le paiement',
-                  description: `${formatFCFA(PRICES.NECROLOGIE)} par Mobile Money ou en espèces.`,
+                  title: 'Photo (optionnel)',
+                  description: 'Envoyez une photo pour aider les autres conducteurs.',
                 },
                 {
                   step: 4,
-                  title: 'Publication',
-                  description: 'Votre avis sera publié dans les 2 heures et reste visible 30 jours.',
+                  title: 'Publication immédiate',
+                  description: 'Votre alerte est publiée en temps réel et reste active selon la situation.',
                 },
               ].map((item) => (
                 <motion.div
@@ -206,15 +230,17 @@ const Necrologie: React.FC = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Tarif */}
+            {/* Gratuité */}
             <div className="bg-card rounded-2xl p-6 border border-border">
-              <h4 className="font-bold text-dark mb-3">Tarif</h4>
-              <p className="text-3xl font-display font-bold text-primary mb-2">
-                {formatFCFA(PRICES.NECROLOGIE)}
+              <h4 className="font-bold text-dark mb-3">Service 100% gratuit</h4>
+              <p className="text-3xl font-display font-bold text-green-600 mb-2">
+                Gratuit
               </p>
-              <p className="text-sm text-muted">par avis publié, paiement sécurisé</p>
+              <p className="text-sm text-muted">
+                Le signalement d'alertes trafic est gratuit pour tous les utilisateurs.
+              </p>
               <p className="text-xs text-muted mt-3">
-                Ce service contribue au maintien de la plateforme.
+                Contribuez à la sécurité de tous les usagers de la route.
               </p>
             </div>
 
@@ -222,11 +248,11 @@ const Necrologie: React.FC = () => {
             <div className="bg-card rounded-2xl p-6 shadow-sm border border-border">
               <h4 className="font-bold text-dark mb-4 flex items-center gap-2">
                 <Phone className="w-5 h-5 text-primary" />
-                Contact d'urgence
+                Signalement urgent
               </h4>
               <p className="text-2xl font-bold text-primary mb-2">{CONTACT.PHONE}</p>
               <p className="text-sm text-muted mb-4">
-                Disponible 24h/24 pour les avis de décès urgents.
+                WhatsApp disponible 7j/7 pour les signalements urgents.
               </p>
               <a
                 href={`tel:${CONTACT.PHONE.replace(/\s/g, '')}`}
@@ -234,6 +260,20 @@ const Necrologie: React.FC = () => {
               >
                 Appeler maintenant
               </a>
+            </div>
+
+            {/* Sources */}
+            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+              <h4 className="font-bold text-dark mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-blue-600" />
+                Sources officielles
+              </h4>
+              <ul className="text-sm text-muted space-y-1">
+                <li>• OSER (Office de Sécurité Routière)</li>
+                <li>• SODEXAM (Météo)</li>
+                <li>• Police Routière</li>
+                <li>• Communauté des transporteurs</li>
+              </ul>
             </div>
           </div>
         </div>
@@ -245,29 +285,32 @@ const Necrologie: React.FC = () => {
           initial={{ scale: 0.95, opacity: 0 }}
           whileInView={{ scale: 1, opacity: 1 }}
           viewport={{ once: true }}
-          className="bg-gray-100 rounded-3xl p-10"
+          className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-3xl p-10 border border-yellow-200"
         >
-          <Heart className="w-14 h-14 text-red-500 mx-auto mb-4" />
+          <AlertTriangle className="w-14 h-14 text-orange-500 mx-auto mb-4" />
           <h3 className="text-2xl md:text-3xl font-display font-bold text-dark mb-3">
-            Honorez la mémoire de vos proches
+            Vous avez vu un incident sur la route ?
           </h3>
           <p className="text-muted mb-6 max-w-2xl mx-auto">
-            Publiez un avis de décès pour informer la communauté et partager votre hommage.
+            Signalez-le gratuitement pour aider les autres transporteurs à éviter les difficultés.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/publier"
+              to="/publier/alerte/packs"
               className="bg-primary text-white px-7 py-3 rounded-full font-bold hover:bg-dark transition-all inline-flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
-              Publier un avis ({formatFCFA(PRICES.NECROLOGIE)})
+              Signaler une alerte (gratuit)
             </Link>
-            <Link
-              to="/contact"
-              className="border-2 border-primary text-primary hover:bg-primary hover:text-white px-7 py-3 rounded-full font-bold transition-all"
+            <a
+              href={`https://wa.me/${CONTACT}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white px-7 py-3 rounded-full font-bold transition-all flex items-center gap-2"
             >
-              Nous contacter
-            </Link>
+              <Phone className="w-4 h-4" />
+              WhatsApp
+            </a>
           </div>
         </motion.div>
       </section>
@@ -275,4 +318,4 @@ const Necrologie: React.FC = () => {
   );
 };
 
-export default Necrologie;
+export default AlertesTrafic;

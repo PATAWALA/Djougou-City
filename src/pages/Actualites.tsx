@@ -12,12 +12,13 @@ import {
   Share2,
   Bookmark,
   Clock,
-  Eye,
   ArrowRight,
   Zap,
   Award,
   Filter,
   X,
+  Bus,
+  Package,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { supabase } from '../lib/supabase';
@@ -26,22 +27,22 @@ import { PRICES, FOLLOWERS } from '../utils/constants';
 import { formatFCFA, formatDate, formatNombre } from '../utils/formatPrice';
 import type { Actualite } from '../types';
 
-type CategorieId = 'toutes' | 'politique' | 'sante' | 'economie' | 'societe' | 'culture';
+type CategorieId = 'toutes' | 'promos' | 'nouveautes' | 'conseils' | 'reglementation' | 'evenements';
 
 const Actualites: React.FC = () => {
   const [selectedCategorie, setSelectedCategorie] = useState<CategorieId>('toutes');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
-  const [loading, setLoading] = useState(false); // plus de spinner bloquant
+  const [loading, setLoading] = useState(false);
 
   const categories = [
-    { id: 'toutes', label: 'Toutes' },
-    { id: 'politique', label: 'Politique' },
-    { id: 'sante', label: 'Santé' },
-    { id: 'economie', label: 'Économie' },
-    { id: 'societe', label: 'Société' },
-    { id: 'culture', label: 'Culture' },
+    { id: 'toutes', label: 'Toutes les offres' },
+    { id: 'promos', label: '🚌 Promos' },
+    { id: 'nouveautes', label: '🆕 Nouveautés' },
+    { id: 'conseils', label: '💡 Conseils' },
+    { id: 'reglementation', label: '📋 Réglementation' },
+    { id: 'evenements', label: '🎉 Événements' },
   ] as const;
 
   useEffect(() => {
@@ -64,14 +65,15 @@ const Actualites: React.FC = () => {
     fetchActualites();
   }, []);
 
-  // Simulation de catégorie basée sur le titre (pour les données existantes)
+  // Simulation de catégorie basée sur le contenu (pour les données existantes)
   const getArticleCategorie = (article: Actualite): string => {
-    const titre = article.titre.toLowerCase();
-    if (titre.includes('santé') || titre.includes('hopital')) return 'sante';
-    if (titre.includes('élection') || titre.includes('politique')) return 'politique';
-    if (titre.includes('marché') || titre.includes('économie')) return 'economie';
-    if (titre.includes('culture')) return 'culture';
-    return 'societe';
+    const texte = (article.titre + ' ' + article.contenu).toLowerCase();
+    if (texte.includes('promo') || texte.includes('réduction') || texte.includes('offre')) return 'promos';
+    if (texte.includes('nouveau') || texte.includes('lancement') || texte.includes('ligne')) return 'nouveautes';
+    if (texte.includes('conseil') || texte.includes('astuce') || texte.includes('guide')) return 'conseils';
+    if (texte.includes('réglementation') || texte.includes('loi') || texte.includes('permis')) return 'reglementation';
+    if (texte.includes('événement') || texte.includes('salon') || texte.includes('fête')) return 'evenements';
+    return 'promos';
   };
 
   const filteredArticles = useMemo(() => {
@@ -94,11 +96,10 @@ const Actualites: React.FC = () => {
   const boostedArticles = filteredArticles.filter((a) => a.estBoosted);
   const regularArticles = filteredArticles.filter((a) => !a.estBoosted);
 
-
   return (
     <MainLayout>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-dark to-gray-900 text-white py-14">
+      <section className="bg-gradient-to-br from-primary to-secondary text-white py-14">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -107,26 +108,25 @@ const Actualites: React.FC = () => {
             className="max-w-3xl"
           >
             <div className="flex items-center gap-3 mb-4">
-              <Newspaper className="w-8 h-8 text-secondary" />
-              <span className="bg-secondary/20 text-secondary px-4 py-1 rounded-full text-sm font-bold">
-                {actualites.length} articles ce mois
+              <Newspaper className="w-8 h-8 text-white" />
+              <span className="bg-white/20 text-white px-4 py-1 rounded-full text-sm font-bold">
+                {actualites.length} offres et actus ce mois
               </span>
             </div>
             <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-              Actualités de Djougou et du Nord‑Bénin
+              Promos & Actus Transport
             </h1>
-            <p className="text-xl text-gray-300 mb-6">
-              Toute l'information locale, en temps réel. Boostez vos articles pour toucher plus de{' '}
-              {FOLLOWERS.toLocaleString()} lecteurs.
+            <p className="text-xl text-white/90 mb-6">
+              Promos sur les billets, nouvelles lignes, conseils routiers : tout pour les transporteurs et voyageurs ivoiriens.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
                 to="/publier"
-                className="bg-secondary text-dark px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-yellow-400 transition-all"
+                className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:bg-gray-100 transition-all"
               >
                 <Zap className="w-5 h-5" />
-                Booster un article
-                <span className="bg-dark/10 px-3 py-1 rounded-full text-sm">
+                Booster une promo
+                <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
                   {formatFCFA(PRICES.BOOST_ARTICLE)}
                 </span>
               </Link>
@@ -136,14 +136,15 @@ const Actualites: React.FC = () => {
       </section>
 
       {/* Barre de recherche et filtres */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-card border-b border-border sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4">
+          {/* Desktop */}
           <div className="hidden lg:flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
-                placeholder="Rechercher une actualité..."
+                placeholder="Rechercher une promo, une actu..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-8 py-2 rounded-full border border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
@@ -163,7 +164,7 @@ const Actualites: React.FC = () => {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategorie(cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                     selectedCategorie === cat.id
                       ? 'bg-primary text-white shadow-sm'
                       : 'bg-background text-dark hover:bg-border'
@@ -239,12 +240,13 @@ const Actualites: React.FC = () => {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-muted">Chargement des offres...</p>
             </div>
           </div>
         ) : filteredArticles.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-            <Newspaper className="w-16 h-16 text-muted mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-dark mb-2">Aucun article trouvé</h3>
+            <Package className="w-16 h-16 text-muted mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-dark mb-2">Aucune offre trouvée</h3>
             <p className="text-muted">Essayez de modifier vos critères de recherche.</p>
             <button
               onClick={() => {
@@ -258,16 +260,16 @@ const Actualites: React.FC = () => {
           </motion.div>
         ) : (
           <>
-            {/* Article à la une (boosté le plus récent) */}
+            {/* Article boosté vedette */}
             {boostedArticles.length > 0 && (
               <section className="mb-12">
                 <div className="flex items-center gap-2 mb-5">
                   <div className="p-1.5 bg-secondary/20 rounded-full">
                     <Award className="w-4 h-4 text-secondary" />
                   </div>
-                  <h2 className="text-xl font-display font-bold text-dark">À la une</h2>
+                  <h2 className="text-xl font-display font-bold text-dark">🔥 Offre boostée</h2>
                   <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
-                    Boosté
+                    Boostée
                   </span>
                 </div>
 
@@ -279,7 +281,7 @@ const Actualites: React.FC = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div className="relative h-64 lg:h-full">
                       <img
-                        src={boostedArticles[0].image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop'}
+                        src={boostedArticles[0].image || 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&fit=crop'}
                         alt={boostedArticles[0].titre}
                         className="w-full h-full object-cover"
                       />
@@ -327,7 +329,7 @@ const Actualites: React.FC = () => {
                         to={`/actualites/${boostedArticles[0].id}`}
                         className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
                       >
-                        Lire l'article complet <ArrowRight className="w-4 h-4" />
+                        Voir l'offre <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
                   </div>
@@ -335,10 +337,10 @@ const Actualites: React.FC = () => {
               </section>
             )}
 
-            {/* Articles boostés supplémentaires */}
+            {/* Autres articles boostés */}
             {boostedArticles.length > 1 && (
               <section className="mb-12">
-                <h3 className="text-lg font-bold text-dark mb-4">Également boostés</h3>
+                <h3 className="text-lg font-bold text-dark mb-4">🚀 Également boostés</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                   {boostedArticles.slice(1).map((article) => (
                     <motion.article
@@ -347,7 +349,7 @@ const Actualites: React.FC = () => {
                       className="bg-card rounded-2xl shadow-md overflow-hidden border border-secondary/30 hover:shadow-lg transition-all"
                     >
                       <div className="relative h-44">
-                        <img src={article.image || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop'} alt={article.titre} className="w-full h-full object-cover" />
+                        <img src={article.image || 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&fit=crop'} alt={article.titre} className="w-full h-full object-cover" />
                         <div className="absolute top-3 left-3 bg-secondary text-dark px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1">
                           <Zap className="w-3 h-3" />
                           Boost
@@ -364,7 +366,7 @@ const Actualites: React.FC = () => {
                         <div className="flex items-center gap-3 text-xs text-muted">
                           <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> {formatNombre(article.likes)}</span>
                           <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> {formatNombre(article.commentaires)}</span>
-                          <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {formatNombre(article.partages * 10)}</span>
+                          <span className="flex items-center gap-1"><Share2 className="w-3 h-3" /> {formatNombre(article.partages)}</span>
                         </div>
                       </div>
                     </motion.article>
@@ -373,10 +375,10 @@ const Actualites: React.FC = () => {
               </section>
             )}
 
-            {/* Liste des articles standards */}
+            {/* Liste standard */}
             <section>
               <h2 className="text-xl font-display font-bold text-dark mb-5">
-                {selectedCategorie === 'toutes' ? 'Toutes les actualités' : categories.find((c) => c.id === selectedCategorie)?.label}
+                {selectedCategorie === 'toutes' ? '📰 Toutes les actus transport' : categories.find((c) => c.id === selectedCategorie)?.label}
                 <span className="text-muted text-base font-normal ml-2">({regularArticles.length})</span>
               </h2>
 
@@ -434,9 +436,9 @@ const Actualites: React.FC = () => {
                   {/* CTA Boost */}
                   <div className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-5 text-white">
                     <Zap className="w-7 h-7 mb-3" />
-                    <h4 className="text-lg font-bold mb-1">Boostez votre article</h4>
+                    <h4 className="text-lg font-bold mb-1">Boostez votre promo</h4>
                     <p className="text-white/80 text-sm mb-3">
-                      Touchez {FOLLOWERS.toLocaleString()} lecteurs.
+                      Touchez +{formatNombre(FOLLOWERS)} voyageurs et transporteurs.
                     </p>
                     <p className="text-2xl font-bold mb-3">{formatFCFA(PRICES.BOOST_ARTICLE)}</p>
                     <Link
@@ -451,7 +453,7 @@ const Actualites: React.FC = () => {
                   <div className="bg-card rounded-2xl p-5 border border-border">
                     <h4 className="font-bold text-dark mb-3 flex items-center gap-1.5">
                       <TrendingUp className="w-4 h-4 text-primary" />
-                      Les plus lus
+                      Les + consultées
                     </h4>
                     <div className="space-y-3">
                       {filteredArticles
@@ -469,14 +471,36 @@ const Actualites: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Potentiel revenus */}
+                  {/* Revenus potentiels */}
                   <div className="bg-success/5 rounded-2xl p-5 border border-success/20">
-                    <p className="text-sm text-dark font-medium mb-1">💰 Potentiel de revenus</p>
+                    <p className="text-sm text-dark font-medium mb-1">💰 Boostez votre visibilité</p>
                     <p className="text-xs text-muted mb-2">
-                      Avec {FOLLOWERS.toLocaleString()} followers, les boosts génèrent :
+                      Une promo boostée génère en moyenne 3x plus de contacts.
                     </p>
-                    <p className="text-lg font-bold text-success">{formatFCFA(10 * PRICES.BOOST_ARTICLE)} / mois</p>
-                    <p className="text-xs text-muted mt-1">sur la base de 10 boosts</p>
+                    <p className="text-lg font-bold text-success">Jusqu'à 300% d'appels</p>
+                    <p className="text-xs text-muted mt-1">par rapport à une annonce classique</p>
+                  </div>
+
+                  {/* Nouveautés rapides */}
+                  <div className="bg-blue-50 rounded-2xl p-5 border border-blue-200">
+                    <h4 className="font-bold text-dark mb-2 flex items-center gap-1">
+                      <Bus className="w-4 h-4 text-blue-600" />
+                      Dernières lignes
+                    </h4>
+                    <ul className="text-sm space-y-2">
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        Daloa → San Pedro (nouveau)
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        Abidjan → Korhogo promo vacances
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                        Bouaké → Man direct
+                      </li>
+                    </ul>
                   </div>
                 </div>
               </div>

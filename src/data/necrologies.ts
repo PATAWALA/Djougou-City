@@ -1,64 +1,114 @@
-import type { Necrologie } from '../types';
+import type { Alerte } from '../types';
 
-export const necrologiesData: Necrologie[] = [
+export const alertesData: Alerte[] = [
   {
     id: '1',
-    nomDefunt: '⚠️ TRAVAUX - DÉVIATION SUR L\'AUTOROUTE DU NORD',
-    dateDeces: '22 Avril 2026',
-    dateEnterrement: '30 Avril 2026',
-    lieuEnterrement: 'PK 45, Autoroute Abidjan-Yamoussoukro',
-    famille: 'AGEROUTE Côte d\'Ivoire',
-    contact: '27 22 41 55 55',
-    montantPaye: 0,
-    message: 'Des travaux de réfection de la chaussée sont en cours au niveau du PK 45 (sortie Azaguié). La circulation est réduite à une voie dans les deux sens. Prévoyez un retard de 20 à 30 minutes. Les poids lourds sont invités à emprunter la déviation par Anyama si possible.',
-    photo: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=200&h=200&fit=crop'
+    titre: '🌧️ Forte pluie sur Abidjan',
+    description: 'Pluie torrentielle en cours sur tout le district d\'Abidjan. Ralentissements importants signalés sur le Boulevard Valéry Giscard d\'Estaing, le Boulevard de Marseille et la zone du carrefour Solibra. Visibilité réduite, soyez prudents.',
+    type: 'meteo',
+    niveau: 'orange',
+    datePublication: '2026-04-22',
+    localisation: 'Abidjan',
+    source: 'SODEXAM',
+    estActive: true
   },
   {
     id: '2',
-    nomDefunt: '🚧 FERMETURE NOCTURNE - PONT HENRI KONAN BÉDIÉ',
-    dateDeces: '22 Avril 2026',
-    dateEnterrement: '25 Avril 2026',
-    lieuEnterrement: 'Pont HKB, Abidjan',
-    famille: 'Ministère de l\'Équipement',
-    contact: '27 22 41 55 55',
-    montantPaye: 0,
-    message: 'Le pont Henri Konan Bédié (reliant Cocody à Marcory) sera fermé à la circulation de 22h à 5h du matin pour des travaux d\'inspection. Déviation obligatoire par le pont Félix Houphouët-Boigny. Camions de plus de 3,5 tonnes : prévoir itinéraire alternatif.',
-    photo: 'https://images.unsplash.com/photo-1581091877291-4c5c8b5b5c5e?w=200&h=200&fit=crop'
+    titre: '🚧 Accident sur Autoroute du Nord',
+    description: 'Un accident impliquant un camion et un minicar s\'est produit au PK 24 sur l\'Autoroute du Nord en direction de Yamoussoukro. La voie de droite est neutralisée. Ralentissement sur 5 km. Déviation possible par l\'ancienne route.',
+    type: 'accident',
+    niveau: 'rouge',
+    datePublication: '2026-04-22',
+    localisation: 'PK 24, Autoroute du Nord',
+    source: 'OSER',
+    estActive: true
   },
   {
     id: '3',
-    nomDefunt: '🌧️ FORTES PLUIES - ROUTE GLISSANTE AXE BOUAKÉ-KORHOGO',
-    dateDeces: '21 Avril 2026',
-    dateEnterrement: '23 Avril 2026',
-    lieuEnterrement: 'RN13, Secteur Katiola',
-    famille: 'Météo Côte d\'Ivoire',
-    contact: '27 22 41 55 55',
-    montantPaye: 0,
-    message: 'Fortes précipitations annoncées sur l\'axe Bouaké-Korhogo pour les prochaines 48h. La chaussée est glissante, en particulier dans les descentes du secteur de Katiola. Réduisez votre vitesse, augmentez les distances de sécurité. Les conducteurs de poids lourds doivent redoubler de vigilance.',
-    photo: 'https://images.unsplash.com/photo-1534274988757-a28bf1a57c17?w=200&h=200&fit=crop'
+    titre: '🚛 Contrôle routier intempestif',
+    description: 'Contrôle routier en cours au corridor de Yopougon en direction de Dabou. Fort ralentissement signalé. Prévoyez 30-45 minutes de retard.',
+    type: 'controle',
+    niveau: 'jaune',
+    datePublication: '2026-04-22',
+    localisation: 'Yopougon, corridor de Dabou',
+    source: 'Communauté des transporteurs',
+    estActive: true
   },
   {
     id: '4',
-    nomDefunt: '🚛 ACCIDENT - BOUCHON IMPORTANT ENTRÉE YOPOUGON',
-    dateDeces: '20 Avril 2026',
-    dateEnterrement: '20 Avril 2026',
-    lieuEnterrement: 'Carrefour Anador, Yopougon',
-    famille: 'Police Secours',
-    contact: '27 22 41 55 55',
-    montantPaye: 0,
-    message: 'Un accident impliquant un camion-citerne s\'est produit au carrefour Anador (entrée Yopougon). La circulation est fortement perturbée dans les deux sens. Évitez le secteur si possible. Déviation conseillée par la Zone Industrielle.',
-    photo: 'https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=200&h=200&fit=crop'
+    titre: '🛣️ Route dégradée - Axe Abidjan-Bassam',
+    description: 'Nids de poule importants signalés entre le Carrefour Akwaba et le PK 18 sur la route de Bassam. Plusieurs crevaisons rapportées ce matin. Roulez au pas sur cette portion.',
+    type: 'route',
+    niveau: 'orange',
+    datePublication: '2026-04-21',
+    localisation: 'Route Abidjan-Bassam, PK 12-18',
+    source: 'OSER',
+    estActive: true
   },
   {
     id: '5',
-    nomDefunt: '📵 NOUVELLE RÉGLEMENTATION - INTERDICTION TÉLÉPHONE AU VOLANT',
-    dateDeces: '15 Avril 2026',
-    dateEnterrement: 'Permanent',
-    lieuEnterrement: 'Territoire National',
-    famille: 'Ministère des Transports',
-    contact: '27 22 41 55 55',
-    montantPaye: 0,
-    message: 'Pour rappel : l\'usage du téléphone portable tenu en main en conduisant est strictement interdit et passible d\'une amende de 30 000 FCFA. Les forces de l\'ordre effectuent des contrôles renforcés sur les grands axes. Restez concentrés sur la route.',
-    photo: 'https://images.unsplash.com/photo-1581091877291-4c5c8b5b5c5e?w=200&h=200&fit=crop'
+    titre: '🌫️ Brouillard matinal - Axe Abidjan-Yamoussoukro',
+    description: 'Brouillard dense signalé sur la section Tiébissou-Yamoussoukro. Visibilité inférieure à 100 mètres. Allumez vos feux de croisement et réduisez votre vitesse.',
+    type: 'meteo',
+    niveau: 'jaune',
+    datePublication: '2026-04-22',
+    localisation: 'Tiébissou - Yamoussoukro',
+    source: 'SODEXAM',
+    estActive: true
+  },
+  {
+    id: '6',
+    titre: '⛽ Pénurie de carburant - Station Total Marcory',
+    description: 'Rupture de gasoil signalée à la station Total de Marcory Zone 4. Les stations Shell et Oilibya du secteur ont encore du carburant.',
+    type: 'carburant',
+    niveau: 'jaune',
+    datePublication: '2026-04-22',
+    localisation: 'Marcory Zone 4, Abidjan',
+    source: 'Transporteurs',
+    estActive: true
+  },
+  {
+    id: '7',
+    titre: '🚦 Embouteillage monstre - Carrefour Solibra',
+    description: 'Embouteillage exceptionnel au carrefour Solibra dû à une panne de feux tricolores. Circulation très difficile dans tous les sens. Évitez le secteur si possible.',
+    type: 'circulation',
+    niveau: 'rouge',
+    datePublication: '2026-04-22',
+    localisation: 'Carrefour Solibra, Abidjan',
+    source: 'Police Routière',
+    estActive: true
+  },
+  {
+    id: '8',
+    titre: '⚠️ Manifestation de transporteurs à Adjamé',
+    description: 'Rassemblement de transporteurs signalé devant la mairie d\'Adjamé. Circulation perturbée sur le Boulevard Nangui Abrogoua. Forces de l\'ordre sur place.',
+    type: 'manifestation',
+    niveau: 'orange',
+    datePublication: '2026-04-22',
+    localisation: 'Adjamé, Abidjan',
+    source: 'Préfecture de Police',
+    estActive: true
+  },
+  {
+    id: '9',
+    titre: '🌉 Pont Félix Houphouët-Boigny - Trafic dense',
+    description: 'Trafic très dense sur le pont Félix Houphouët-Boigny dans les deux sens. Temps de traversée estimé à 45 minutes au lieu de 10. Privilégiez le pont Henri Konan Bédié.',
+    type: 'circulation',
+    niveau: 'orange',
+    datePublication: '2026-04-22',
+    localisation: 'Pont FHB, Abidjan',
+    source: 'OSER',
+    estActive: true
+  },
+  {
+    id: '10',
+    titre: '✅ Accident dégagé - Autoroute du Nord PK 24',
+    description: 'L\'accident précédemment signalé au PK 24 a été dégagé. La circulation reprend progressivement. Ralentissements résiduels sur 2 km.',
+    type: 'accident',
+    niveau: 'vert',
+    datePublication: '2026-04-21',
+    localisation: 'PK 24, Autoroute du Nord',
+    source: 'OSER',
+    estActive: false
   }
 ];

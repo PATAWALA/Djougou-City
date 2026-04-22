@@ -1,84 +1,87 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Flower, BookOpen, Bell } from 'lucide-react';
+import { Check, ArrowRight, AlertTriangle, Wrench, Ambulance } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import { PRICES } from '../utils/constants';
 import { formatFCFA } from '../utils/formatPrice';
 
-const NecrologiePacks: React.FC = () => {
+const AlertePacks: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedPack, setSelectedPack] = useState('hommage');
+  const [selectedPack, setSelectedPack] = useState('gratuit');
 
   const packs = [
     {
-      id: 'simple',
-      name: 'Simple',
-      price: PRICES.NECROLOGIE_SIMPLE || 1000,
-      icon: Flower,
-      description: 'L\'essentiel pour informer la communauté avec respect.',
+      id: 'gratuit',
+      name: 'Alerte Simple',
+      price: 0,
+      icon: AlertTriangle,
+      description: 'Signalez un incident sur la route gratuitement.',
       features: [
-        'Publication visible pendant 30 jours',
-        '1 photo du défunt',
-        'Coordonnées de la famille affichées',
-        'Message de condoléances court (200 caractères)',
+        'Publication immédiate',
+        'Visible par tous les usagers',
+        '1 photo possible',
+        'Alerte active 7 jours',
       ],
       additional: [
-        'Idéal pour une annonce sobre et efficace',
-        'Convient aux familles souhaitant une communication simple',
+        'Idéal pour signaler un accident, un bouchon, une route dégradée',
+        'Aucun frais, service communautaire',
       ],
-      cible: 'Familles, annonces discrètes',
+      cible: 'Tous les usagers de la route',
       badge: null,
       color: 'border-gray-300',
     },
     {
-      id: 'hommage',
-      name: 'Hommage',
-      price: PRICES.NECROLOGIE_HOMMAGE || 2500,
-      icon: BookOpen,
-      description: 'Un hommage plus complet pour honorer la mémoire du défunt.',
+      id: 'assistance',
+      name: 'Alerte + Assistance',
+      price: PRICES.ALERTE_ASSISTANCE || 2000,
+      icon: Wrench,
+      description: 'Besoin d\'un dépanneur ou d\'un mécanicien ?',
       features: [
-        'Tous les avantages du pack Simple',
-        '3 photos pour un hommage visuel',
-        'Message long personnalisé (1000 caractères)',
-        'Partage automatique sur les réseaux sociaux',
-        'Possibilité d\'ajouter un programme des obsèques',
+        'Tous les avantages de l\'Alerte Simple',
+        'Mise en relation prioritaire avec des garages partenaires',
+        'Badge "Assistance demandée"',
+        'Contact direct avec les dépanneurs disponibles',
       ],
       additional: [
-        'Recommandé pour une cérémonie avec plusieurs étapes',
-        'Permet à la communauté élargie de participer à distance',
-        'L\'option la plus choisie par les familles',
+        'Recommandé en cas de panne ou de crevaison',
+        'Intervention rapide sur les grands axes',
+        'Paiement unique de 2000 FCFA',
       ],
-      cible: 'Familles, cérémonies traditionnelles, hommages collectifs',
-      badge: { text: 'Recommandé', color: 'bg-secondary text-dark' },
+      cible: 'Conducteurs en panne, crevaison, besoin de mécano',
+      badge: { text: 'Populaire', color: 'bg-secondary text-dark' },
       color: 'border-secondary',
     },
     {
-      id: 'ceremonie',
-      name: 'Cérémonie',
-      price: PRICES.NECROLOGIE_CEREMONIE || 5000,
-      icon: Bell,
-      description: 'Visibilité maximale pour une annonce importante.',
+      id: 'urgence',
+      name: 'Alerte Urgence',
+      price: PRICES.ALERTE_URGENCE || 5000,
+      icon: Ambulance,
+      description: 'Situation critique nécessitant une intervention rapide.',
       features: [
-        'Tous les avantages du pack Hommage',
-        '5 photos pour un album souvenir complet',
-        'Annonce épinglée en tête de page pendant 7 jours',
-        'Partage prioritaire sur Facebook (28K abonnés)',
-        'Support dédié pour vous accompagner',
+        'Tous les avantages de l\'Alerte Assistance',
+        'Alerte épinglée en tête de liste pendant 48h',
+        'Partage prioritaire sur les groupes WhatsApp transporteurs',
+        'Contact avec les services de secours si nécessaire',
+        'Badge "URGENCE" clignotant',
       ],
       additional: [
-        'Idéal pour les personnalités locales, grandes familles',
-        'Assure une couverture maximale dans la communauté',
-        'Votre annonce est vue en premier par tous les visiteurs',
+        'Pour les accidents graves, incendies, détresses',
+        'Visibilité maximale auprès de la communauté',
+        'Support dédié 24h/24',
       ],
-      cible: 'Personnalités, grandes familles, cérémonies publiques',
-      badge: { text: 'Premium', color: 'bg-primary text-white' },
-      color: 'border-primary',
+      cible: 'Situations d\'urgence, accidents graves, détresse',
+      badge: { text: 'Urgence', color: 'bg-red-600 text-white' },
+      color: 'border-red-500',
     },
   ];
 
   const handleContinue = () => {
-    navigate(`/paiement?type=necrologie&pack=${selectedPack}&redirect=/publier/necrologie/form`);
+    if (selectedPack === 'gratuit') {
+      navigate(`/publier/alerte/form?pack=gratuit`);
+    } else {
+      navigate(`/paiement?type=alerte&pack=${selectedPack}&redirect=/publier/alerte/form`);
+    }
   };
 
   return (
@@ -86,10 +89,10 @@ const NecrologiePacks: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">
-            Choisissez le pack pour l'avis de décès
+            🚨 Choisissez le type d'alerte à signaler
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Honorez la mémoire de votre proche et informez la communauté avec le niveau de visibilité qui vous convient.
+            Informez la communauté des incidents sur la route. Des options gratuites et payantes selon votre besoin.
           </p>
         </div>
 
@@ -123,9 +126,9 @@ const NecrologiePacks: React.FC = () => {
                   <p className="text-sm text-muted mb-4">{pack.description}</p>
                   <div className="mb-4">
                     <span className="text-3xl font-display font-bold text-primary">
-                      {formatFCFA(pack.price)}
+                      {pack.price === 0 ? 'Gratuit' : formatFCFA(pack.price)}
                     </span>
-                    <span className="text-sm text-muted ml-1">/ avis</span>
+                    <span className="text-sm text-muted ml-1">/ alerte</span>
                   </div>
                   <ul className="space-y-2 mb-4">
                     {pack.features.map((feature, idx) => (
@@ -146,7 +149,7 @@ const NecrologiePacks: React.FC = () => {
                     </ul>
                   </div>
                   <div className="mt-4 text-xs text-muted italic">
-                    Cible : {pack.cible}
+                    🎯 Cible : {pack.cible}
                   </div>
                   {isSelected && (
                     <div className="mt-4 text-success text-sm font-semibold flex items-center gap-1 justify-center">
@@ -164,10 +167,10 @@ const NecrologiePacks: React.FC = () => {
             onClick={handleContinue}
             className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-dark transition-colors shadow-lg inline-flex items-center gap-2"
           >
-            Continuer vers le paiement <ArrowRight className="w-5 h-5" />
+            Continuer <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-xs text-muted mt-4">
-            Paiement sécurisé. L'avis sera publié immédiatement après confirmation.
+            {selectedPack === 'gratuit' ? 'Aucun paiement requis' : 'Paiement sécurisé par Mobile Money'}
           </p>
         </div>
       </div>
@@ -175,4 +178,4 @@ const NecrologiePacks: React.FC = () => {
   );
 };
 
-export default NecrologiePacks;
+export default AlertePacks;

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -8,14 +9,13 @@ import {
   MessageCircle,
   Send,
   Users,
-  Store,
   Megaphone,
-  CheckCircle
+  CheckCircle,
+  Bus,
 } from 'lucide-react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import MainLayout from '../layouts/MainLayout';
 import { CONTACT, FOLLOWERS, PRICES } from '../utils/constants';
-import { formatFCFA } from '../utils/formatPrice';
+import { formatFCFA, formatNombre } from '../utils/formatPrice';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -36,17 +36,16 @@ const Contact: React.FC = () => {
 
   const sujets = [
     { value: 'sponsor', label: 'Devenir Sponsor', prix: formatFCFA(PRICES.SPONSOR) + '/mois' },
-    { value: 'annonce', label: 'Publier une annonce', prix: formatFCFA(PRICES.ANNONCE) },
-    { value: 'necrologie', label: 'Avis de deces', prix: formatFCFA(PRICES.NECROLOGIE) },
-    { value: 'boost', label: 'Booster un article', prix: formatFCFA(PRICES.BOOST_ARTICLE) },
-    { value: 'premium', label: 'Abonnement Premium', prix: formatFCFA(PRICES.PREMIUM) + '/mois' },
+    { value: 'depart', label: 'Publier un départ', prix: 'Gratuit' },
+    { value: 'fret', label: 'Annonce de fret', prix: formatFCFA(PRICES.ANNONCE_STANDARD) },
+    { value: 'boost', label: 'Booster une promo', prix: formatFCFA(PRICES.BOOST_ARTICLE) },
+    { value: 'premium', label: 'Abonnement Agence Pro', prix: formatFCFA(PRICES.PREMIUM) + '/mois' },
+    { value: 'alerte', label: 'Signaler une alerte trafic', prix: 'Gratuit' },
     { value: 'autre', label: 'Autre demande', prix: 'Sur devis' }
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
+    <MainLayout>
       <main className="pb-20">
         {/* Hero Section */}
         <section className="bg-gradient-to-br from-primary to-secondary text-white py-16">
@@ -57,20 +56,20 @@ const Contact: React.FC = () => {
               className="max-w-3xl mx-auto"
             >
               <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
-                Contactez l'equipe DjougouCity
+                Contactez l'équipe CITransports
               </h1>
               <p className="text-xl text-white/90 mb-8">
-                Vous souhaitez devenir sponsor, publier une annonce ou simplement nous parler ? 
-                Nous sommes la pour vous aider.
+                Vous êtes transporteur, chargeur ou simple voyageur ?<br />
+                Nous sommes là pour vous accompagner.
               </p>
               <div className="flex items-center justify-center gap-6">
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5" />
-                  <span>{FOLLOWERS.toLocaleString()} followers</span>
+                  <span>{formatNombre(FOLLOWERS)} membres</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-5 h-5" />
-                  <span>Reponse sous 2h</span>
+                  <span>Réponse sous 2h</span>
                 </div>
               </div>
             </motion.div>
@@ -84,7 +83,7 @@ const Contact: React.FC = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Phone className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-bold text-dark mb-1">Telephone</h3>
+              <h3 className="font-bold text-dark mb-1">Téléphone</h3>
               <p className="text-xl font-semibold text-primary mb-2">{CONTACT.PHONE}</p>
               <p className="text-xs text-muted">Appel et WhatsApp</p>
             </div>
@@ -104,7 +103,7 @@ const Contact: React.FC = () => {
               </div>
               <h3 className="font-bold text-dark mb-1">Email</h3>
               <p className="text-sm text-primary">{CONTACT.EMAIL}</p>
-              <p className="text-xs text-muted mt-2">Reponse sous 24h</p>
+              <p className="text-xs text-muted mt-2">Réponse sous 24h</p>
             </div>
           </div>
         </section>
@@ -130,16 +129,16 @@ const Contact: React.FC = () => {
                     className="bg-success/10 border border-success/30 rounded-xl p-8 text-center"
                   >
                     <CheckCircle className="w-16 h-16 text-success mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-dark mb-2">Message envoye !</h3>
+                    <h3 className="text-xl font-bold text-dark mb-2">Message envoyé !</h3>
                     <p className="text-muted">
-                      Nous vous repondrons dans les plus brefs delais.
+                      Nous vous répondrons dans les plus brefs délais.
                     </p>
                   </motion.div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-dark mb-2">
-                        Nom complet
+                        Nom complet / Compagnie
                       </label>
                       <input
                         type="text"
@@ -147,14 +146,14 @@ const Contact: React.FC = () => {
                         value={formData.nom}
                         onChange={(e) => setFormData({...formData, nom: e.target.value})}
                         className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                        placeholder="Votre nom"
+                        placeholder="Votre nom ou votre compagnie"
                       />
                     </div>
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-dark mb-2">
-                          Telephone
+                          Téléphone
                         </label>
                         <input
                           type="tel"
@@ -162,7 +161,7 @@ const Contact: React.FC = () => {
                           value={formData.telephone}
                           onChange={(e) => setFormData({...formData, telephone: e.target.value})}
                           className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                          placeholder="97 12 34 56"
+                          placeholder="05 74 36 63 52"
                         />
                       </div>
                       <div>
@@ -206,7 +205,7 @@ const Contact: React.FC = () => {
                         value={formData.message}
                         onChange={(e) => setFormData({...formData, message: e.target.value})}
                         className="w-full px-4 py-3 rounded-xl border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-none"
-                        placeholder="Decrivez votre demande..."
+                        placeholder="Décrivez votre demande..."
                       />
                     </div>
                     
@@ -219,7 +218,7 @@ const Contact: React.FC = () => {
                     </button>
                     
                     <p className="text-xs text-muted text-center">
-                      En envoyant ce message, vous acceptez d'etre contacte par notre equipe.
+                      En envoyant ce message, vous acceptez d'être contacté par notre équipe.
                     </p>
                   </form>
                 )}
@@ -230,8 +229,8 @@ const Contact: React.FC = () => {
               {/* Services */}
               <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
                 <h3 className="font-bold text-dark mb-4 flex items-center gap-2">
-                  <Store className="w-5 h-5 text-primary" />
-                  Nos services
+                  <Bus className="w-5 h-5 text-primary" />
+                  Nos services transport
                 </h3>
                 <ul className="space-y-3">
                   {sujets.filter(s => s.value !== 'autre').map((service) => (
@@ -243,22 +242,22 @@ const Contact: React.FC = () => {
                 </ul>
               </div>
               
-              {/* Potentiel */}
+              {/* Pourquoi nous contacter */}
               <div className="bg-gradient-to-br from-dark to-gray-900 text-white rounded-2xl p-6">
                 <Megaphone className="w-8 h-8 mb-4 text-secondary" />
                 <h3 className="text-xl font-bold mb-2">Pourquoi nous contacter ?</h3>
                 <ul className="space-y-3 text-sm text-gray-300">
                   <li className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                    <span>Touchez {FOLLOWERS.toLocaleString()} personnes a Djougou</span>
+                    <span>Touchez {formatNombre(FOLLOWERS)} transporteurs et voyageurs</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                    <span>Audience locale et qualifiee</span>
+                    <span>Audience ivoirienne qualifiée</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                    <span>Tarifs adaptes aux realites locales</span>
+                    <span>Tarifs adaptés au marché ivoirien</span>
                   </li>
                 </ul>
               </div>
@@ -270,9 +269,9 @@ const Contact: React.FC = () => {
                   <h4 className="font-bold text-dark">WhatsApp</h4>
                 </div>
                 <p className="text-2xl font-bold text-green-600 mb-2">{CONTACT.PHONE}</p>
-                <p className="text-sm text-muted mb-4">Reponse rapide par WhatsApp</p>
+                <p className="text-sm text-muted mb-4">Réponse rapide par WhatsApp</p>
                 <a
-                  href={`https://wa.me/229${CONTACT.PHONE.replace(/\s/g, '')}`}
+                  href={`https://wa.me/225${CONTACT.PHONE.replace(/\s/g, '').replace('+225', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full bg-green-600 text-white text-center py-3 rounded-full font-bold hover:bg-green-700 transition-colors"
@@ -284,9 +283,7 @@ const Contact: React.FC = () => {
           </div>
         </section>
       </main>
-      
-      <Footer />
-    </div>
+    </MainLayout>
   );
 };
 

@@ -6,89 +6,94 @@ import {
   Star,
   Zap,
   Shield,
-  Gift,
   TrendingUp,
   Users,
   Eye,
   Smartphone,
   CreditCard,
   ArrowLeft,
+  Bus,
+  Package,
+  BarChart3,
+  Headphones,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
-import { FOLLOWERS } from '../utils/constants';
-import { formatFCFA } from '../utils/formatPrice';
+import { FOLLOWERS, PRICES, CONTACT } from '../utils/constants';
+import { formatFCFA, formatNombre } from '../utils/formatPrice';
 
 const Premium: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<'mensuel' | 'trimestriel' | 'annuel'>('mensuel');
   const [paymentMethod, setPaymentMethod] = useState<'mobile' | 'especes'>('mobile');
 
+  const basePrice = PRICES.PREMIUM || 25000;
+
   const plans = {
     mensuel: {
-      prix: 500,
+      prix: basePrice,
       label: 'Mensuel',
-      description: 'Idéal pour découvrir les avantages Premium',
+      description: 'Idéal pour tester les avantages Pro',
       economie: null,
     },
     trimestriel: {
-      prix: 1350,
+      prix: Math.round(basePrice * 3 * 0.85),
       label: 'Trimestriel',
-      description: 'Le plus choisi par nos membres',
-      economie: 150,
+      description: 'Le plus populaire chez les agences',
+      economie: Math.round(basePrice * 3 * 0.15),
     },
     annuel: {
-      prix: 5000,
+      prix: Math.round(basePrice * 12 * 0.70),
       label: 'Annuel',
       description: 'Meilleur rapport qualité/prix',
-      economie: 1000,
+      economie: Math.round(basePrice * 12 * 0.30),
     },
   };
 
   const avantagesPremium = [
     {
+      icon: Bus,
+      titre: 'Départs illimités',
+      description: 'Publiez autant de départs que vous voulez, sans limite.',
+    },
+    {
       icon: Eye,
-      titre: 'Visibilité accrue',
-      description: 'Vos annonces apparaissent en tête de liste et restent visibles 2 fois plus longtemps.',
+      titre: 'Visibilité prioritaire',
+      description: 'Vos annonces apparaissent en tête des résultats de recherche.',
     },
     {
       icon: Zap,
-      titre: 'Accès anticipé',
-      description: 'Recevez les actualités importantes 24h avant tout le monde.',
-    },
-    {
-      icon: Crown,
-      titre: 'Badge Premium',
-      description: 'Un badge distinctif doré sur votre profil et vos annonces.',
-    },
-    {
-      icon: Shield,
-      titre: 'Support prioritaire',
-      description: 'Assistance 24/7 par téléphone et WhatsApp.',
-    },
-    {
-      icon: Gift,
-      titre: 'Invitations exclusives',
-      description: 'Accès aux événements et rencontres de la communauté.',
+      titre: 'Badge "Agence Pro"',
+      description: 'Un badge doré qui inspire confiance aux voyageurs.',
     },
     {
       icon: TrendingUp,
       titre: 'Statistiques avancées',
-      description: 'Suivez les performances de vos annonces en temps réel.',
+      description: 'Suivez vos vues, contacts et taux de remplissage.',
+    },
+    {
+      icon: Package,
+      titre: 'Fret prioritaire',
+      description: 'Vos annonces de chargement sont mises en avant.',
+    },
+    {
+      icon: Headphones,
+      titre: 'Support prioritaire 7j/7',
+      description: 'Assistance WhatsApp et téléphonique sous 1h.',
     },
   ];
 
   const temoignages = [
     {
-      nom: 'Restaurant La Terrasse',
-      role: 'Sponsor Premium',
-      commentaire: 'Le badge Premium a augmenté notre visibilité de 40%. Nos clients nous trouvent plus facilement.',
-      avatar: 'R',
+      nom: 'CITransports',
+      role: 'Agence de voyage',
+      commentaire: 'Avec l\'abonnement Pro, nous avons augmenté notre taux de remplissage de 35%.',
+      avatar: 'CI',
     },
     {
-      nom: 'Garage Le Spécialiste',
-      role: 'Membre Premium',
-      commentaire: 'Les statistiques avancées nous aident à mieux comprendre nos clients.',
-      avatar: 'G',
+      nom: 'Garage du Plateau',
+      role: 'Mécanique poids lourds',
+      commentaire: 'La visibilité prioritaire nous apporte des clients chaque jour.',
+      avatar: 'GP',
     },
   ];
 
@@ -106,7 +111,7 @@ const Premium: React.FC = () => {
           </Link>
         </div>
 
-        {/* Hero Section - sobre */}
+        {/* Hero */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -116,10 +121,10 @@ const Premium: React.FC = () => {
             <Crown className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl md:text-5xl font-display font-bold text-dark mb-4">
-            Devenez Membre <span className="text-primary">Premium</span>
+            Passez à l'offre <span className="text-primary">Agence Pro</span>
           </h1>
           <p className="text-lg text-muted mb-6">
-            Rejoignez le cercle privilégié de DjougouCity et bénéficiez d'avantages exclusifs pour valoriser votre présence.
+            Boostez votre activité de transport avec des outils exclusifs et une visibilité maximale.
           </p>
           <div className="flex items-center justify-center gap-4 text-sm text-muted">
             <span className="flex items-center gap-1">
@@ -131,10 +136,10 @@ const Premium: React.FC = () => {
           </div>
         </motion.div>
 
-        {/* Avantages - cartes épurées */}
+        {/* Avantages */}
         <section className="mb-20">
           <h2 className="text-2xl md:text-3xl font-display font-bold text-dark text-center mb-12">
-            Tout ce que vous obtenez avec Premium
+            Tout ce que vous obtenez avec Agence Pro
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {avantagesPremium.map((avantage, index) => (
@@ -156,12 +161,14 @@ const Premium: React.FC = () => {
           </div>
         </section>
 
-        {/* Tarifs - design clair */}
+        {/* Tarifs */}
         <section className="mb-20">
           <h2 className="text-2xl md:text-3xl font-display font-bold text-dark text-center mb-4">
             Choisissez votre formule
           </h2>
-          <p className="text-muted text-center mb-10">Des tarifs adaptés à tous les besoins</p>
+          <p className="text-muted text-center mb-10">
+            Des tarifs adaptés à toutes les agences de transport
+          </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
             {(Object.keys(plans) as Array<keyof typeof plans>).map((plan) => (
@@ -197,7 +204,7 @@ const Premium: React.FC = () => {
           </div>
         </section>
 
-        {/* Formulaire d'abonnement */}
+        {/* Finalisation */}
         <section className="max-w-2xl mx-auto mb-20">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -209,7 +216,6 @@ const Premium: React.FC = () => {
               Finalisez votre abonnement
             </h3>
 
-            {/* Récapitulatif */}
             <div className="bg-background rounded-xl p-5 mb-6">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-muted">Formule</span>
@@ -227,7 +233,6 @@ const Premium: React.FC = () => {
               )}
             </div>
 
-            {/* Méthode de paiement */}
             <div className="mb-6">
               <h4 className="font-medium text-dark mb-3">Mode de paiement</h4>
               <div className="grid grid-cols-2 gap-3">
@@ -242,7 +247,7 @@ const Premium: React.FC = () => {
                   <Smartphone className="w-5 h-5 text-primary" />
                   <div className="text-left">
                     <p className="font-medium text-dark text-sm">Mobile Money</p>
-                    <p className="text-xs text-muted">MTN, Moov</p>
+                    <p className="text-xs text-muted">Orange, MTN, Moov</p>
                   </div>
                 </button>
 
@@ -257,20 +262,20 @@ const Premium: React.FC = () => {
                   <CreditCard className="w-5 h-5 text-primary" />
                   <div className="text-left">
                     <p className="font-medium text-dark text-sm">Espèces</p>
-                    <p className="text-xs text-muted">À la Mairie</p>
+                    <p className="text-xs text-muted">Au bureau</p>
                   </div>
                 </button>
               </div>
             </div>
 
-            {/* Instructions */}
             {paymentMethod === 'mobile' && (
               <div className="bg-background rounded-xl p-4 mb-6">
                 <p className="text-sm text-muted mb-2">Numéros Mobile Money :</p>
-                <p className="font-mono bg-white p-2 rounded text-sm">MTN : 67 23 23 39</p>
-                <p className="font-mono bg-white p-2 rounded mt-1 text-sm">Moov : 95 67 89 00</p>
+                <p className="font-mono bg-white p-2 rounded text-sm">Orange : 07 09 08 07 06</p>
+                <p className="font-mono bg-white p-2 rounded mt-1 text-sm">MTN : 05 06 07 08 09</p>
+                <p className="font-mono bg-white p-2 rounded mt-1 text-sm">Moov : 01 02 03 04 05</p>
                 <p className="text-xs text-muted mt-3">
-                  Après paiement, envoyez la capture WhatsApp au 67 23 23 39
+                  Après paiement, envoyez la capture WhatsApp au {CONTACT.PHONE}
                 </p>
               </div>
             )}
@@ -278,9 +283,9 @@ const Premium: React.FC = () => {
             {paymentMethod === 'especes' && (
               <div className="bg-background rounded-xl p-4 mb-6">
                 <p className="text-sm text-muted">
-                  Rendez-vous à l'adresse suivante pour finaliser votre abonnement :
+                  Rendez-vous à notre bureau pour finaliser votre abonnement :
                 </p>
-                <p className="font-semibold text-dark mt-2">Mairie, Djougou, Benin, 125</p>
+                <p className="font-semibold text-dark mt-2">{CONTACT.ADDRESS}</p>
                 <p className="text-xs text-muted mt-3">Lundi au Samedi, 8h - 18h</p>
               </div>
             )}
@@ -331,37 +336,39 @@ const Premium: React.FC = () => {
           </div>
         </section>
 
-        {/* Potentiel de revenus - mise en avant discrète */}
+        {/* Communauté */}
         <section className="bg-card rounded-3xl p-8 border border-border">
           <div className="text-center">
             <Users className="w-12 h-12 mx-auto mb-4 text-primary" />
             <h3 className="text-2xl font-display font-bold text-dark mb-4">
-              Potentiel de revenus avec Premium
+              Rejoignez la communauté Pro
             </h3>
             <p className="text-muted mb-8 max-w-2xl mx-auto">
-              Avec {FOLLOWERS.toLocaleString()} followers, le programme Premium génère des revenus récurrents.
+              Plus de {formatNombre(FOLLOWERS)} transporteurs et voyageurs utilisent CITransports chaque mois.
             </p>
             <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-6">
               <div className="bg-background rounded-xl p-4">
-                <p className="text-xl font-bold text-dark">50</p>
-                <p className="text-xs text-muted">abonnés</p>
-                <p className="text-sm font-semibold text-primary mt-1">{formatFCFA(50 * 500)}</p>
+                <p className="text-xl font-bold text-dark">{formatNombre(150)}</p>
+                <p className="text-xs text-muted">agences Pro</p>
+                <p className="text-sm font-semibold text-primary mt-1">actives</p>
               </div>
               <div className="bg-background rounded-xl p-4">
-                <p className="text-xl font-bold text-dark">100</p>
-                <p className="text-xs text-muted">abonnés</p>
-                <p className="text-sm font-semibold text-primary mt-1">{formatFCFA(100 * 500)}</p>
+                <p className="text-xl font-bold text-dark">{formatNombre(45)}</p>
+                <p className="text-xs text-muted">départs/jour</p>
+                <p className="text-sm font-semibold text-primary mt-1">en moyenne</p>
               </div>
               <div className="bg-background rounded-xl p-4">
-                <p className="text-xl font-bold text-dark">250</p>
-                <p className="text-xs text-muted">abonnés</p>
-                <p className="text-sm font-semibold text-primary mt-1">{formatFCFA(250 * 500)}</p>
+                <p className="text-xl font-bold text-dark">+300%</p>
+                <p className="text-xs text-muted">de contacts</p>
+                <p className="text-sm font-semibold text-primary mt-1">pour les Pro</p>
               </div>
             </div>
-            <p className="text-sm text-muted">
-              Avec seulement 1% de conversion ={' '}
-              <span className="font-bold text-primary">{formatFCFA(280 * 500)} / mois</span>
-            </p>
+            <Link
+              to="/auth"
+              className="inline-block bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-dark transition-colors"
+            >
+              Devenir Agence Pro
+            </Link>
           </div>
         </section>
       </div>

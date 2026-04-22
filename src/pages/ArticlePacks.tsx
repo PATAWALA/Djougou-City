@@ -2,90 +2,93 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, ArrowRight, Zap, TrendingUp, Share2 } from 'lucide-react';
-import { PRICES } from '../utils/constants';
-import { formatFCFA } from '../utils/formatPrice';
+import MainLayout from '../layouts/MainLayout';
+import { PRICES, FOLLOWERS } from '../utils/constants';
+import { formatFCFA, formatNombre } from '../utils/formatPrice';
 
-const ArticlePacks: React.FC = () => {
+const PromoPacks: React.FC = () => {
   const navigate = useNavigate();
-  const [selectedPack, setSelectedPack] = useState('visibilite');
+  const [selectedPack, setSelectedPack] = useState('standard');
 
   const packs = [
     {
-      id: 'coupdepouce',
-      name: 'Coup de pouce',
+      id: 'basic',
+      name: 'Visibilité Basic',
       price: PRICES.BOOST_COUP_DE_POUCE || 1000,
       icon: Zap,
-      description: 'Un petit boost pour donner un avant-goût de visibilité.',
+      description: 'Un petit coup de pouce pour mettre en avant votre promo ou offre de transport.',
       features: [
-        'Votre article remonte en tête de liste des actualités',
-        'Visibilité garantie pendant 24 heures',
-        'Badge "Boosté" pour attirer l\'attention',
+        'Remontée en tête de liste des promos pendant 24h',
+        'Badge "Boosté" sur votre annonce',
+        'Idéal pour une offre flash ou un départ urgent',
       ],
       additional: [
-        'Idéal pour tester l\'impact d\'un boost',
-        'Convient aux annonces ponctuelles ou événements courts',
+        'Convient aux petites compagnies ou départs ponctuels',
+        'Testez l\'impact du boost à moindre coût',
       ],
-      cible: 'Particuliers, petites annonces urgentes',
+      cible: 'Petits transporteurs, offres limitées',
       badge: null,
       color: 'border-gray-300',
     },
     {
-      id: 'visibilite',
-      name: 'Visibilité',
-      price: PRICES.BOOST_VISIBILITE || 3000,
+      id: 'standard',
+      name: 'Boost Standard',
+      price: PRICES.BOOST_ARTICLE || 3000,
       icon: TrendingUp,
-      description: 'La formule équilibrée pour une exposition prolongée.',
+      description: 'La formule équilibrée pour une visibilité prolongée et plus de réservations.',
       features: [
-        'Article épinglé en haut de la page Actualités pendant 3 jours',
-        'Mise en avant sur la page d\'accueil du site',
+        'Épinglé en haut des promos pendant 3 jours',
+        'Mise en avant sur la page d\'accueil CITransports',
         'Badge "Boosté" bien visible',
-        'Statistiques de lectures (nombre de vues, clics)',
+        'Statistiques de vues et contacts',
       ],
       additional: [
-        'Meilleur rapport qualité/prix',
-        'Recommandé pour la majorité des besoins',
-        'Touche un large public sans exploser le budget',
+        'Recommandé pour les promotions de mi-saison',
+        'Attirez plus de voyageurs sans vous ruiner',
+        'L\'option la plus populaire',
       ],
-      cible: 'Commerçants, artisans, événements locaux',
+      cible: 'Agences de voyage, lignes régulières',
       badge: { text: 'Recommandé', color: 'bg-secondary text-dark' },
       color: 'border-secondary',
     },
     {
-      id: 'viral',
-      name: 'Viral',
+      id: 'premium',
+      name: 'Boost Premium',
       price: PRICES.BOOST_VIRAL || 5000,
       icon: Share2,
-      description: 'Pour une diffusion maximale et un impact fort.',
+      description: 'Visibilité maximale : touchez des milliers de voyageurs et transporteurs.',
       features: [
-        'Épinglé en tête de page pendant 7 jours consécutifs',
-        'Partage sur la page Facebook « La Ville De Djougou » (28 000 followers)',
-        'Mise en avant sur la page d\'accueil',
-        'Badge "Viral" exclusif',
-        'Rapport de performance détaillé (vues, interactions, portée)',
+        'Épinglé en tête pendant 7 jours',
+        'Partage sur la page Facebook « Côte d\'Ivoire Transports »',
+        `Visibilité auprès de ${formatNombre(FOLLOWERS)} followers`,
+        'Badge "Premium" exclusif',
+        'Rapport de performance détaillé',
       ],
       additional: [
-        'Visibilité maximale garantie',
-        'Idéal pour un lancement de produit, une campagne importante',
-        'Bénéficiez de la force de la communauté Facebook',
+        'Idéal pour le lancement d\'une nouvelle ligne',
+        'Maximisez le remplissage de vos cars',
+        'Profitez de la force de notre communauté',
       ],
-      cible: 'Entreprises, grands événements, campagnes de notoriété',
+      cible: 'Grandes compagnies, nouvelles destinations, périodes de fêtes',
       badge: { text: 'Premium', color: 'bg-primary text-white' },
       color: 'border-primary',
     },
   ];
 
   const handleContinue = () => {
-    navigate(`/paiement?type=article&pack=${selectedPack}&redirect=/publier/article/form`);
+    navigate(`/paiement?type=promo&pack=${selectedPack}&redirect=/publier/promo/form`);
   };
 
   return (
+    <MainLayout>
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">
-            Boostez votre article
+            🚀 Boostez votre promo transport
           </h1>
           <p className="text-lg text-muted max-w-2xl mx-auto">
-            Donnez à votre actualité la visibilité qu'elle mérite. Choisissez le pack adapté à votre objectif et touchez des milliers de lecteurs.
+            Donnez un maximum de visibilité à vos offres, départs spéciaux ou nouvelles lignes. 
+            Choisissez la formule adaptée et attirez plus de voyageurs.
           </p>
         </div>
 
@@ -142,11 +145,11 @@ const ArticlePacks: React.FC = () => {
                     </ul>
                   </div>
                   <div className="mt-4 text-xs text-muted italic">
-                    Cible : {pack.cible}
+                    🎯 Cible : {pack.cible}
                   </div>
                   {isSelected && (
                     <div className="mt-4 text-success text-sm font-semibold flex items-center gap-1 justify-center">
-                      <Check className="w-4 h-4" /> Pack sélectionné
+                      <Check className="w-4 h-4" /> Formule sélectionnée
                     </div>
                   )}
                 </div>
@@ -163,11 +166,12 @@ const ArticlePacks: React.FC = () => {
             Continuer vers le paiement <ArrowRight className="w-5 h-5" />
           </button>
           <p className="text-xs text-muted mt-4">
-            Paiement sécurisé. Vous pourrez publier votre article juste après.
+            Paiement sécurisé par Mobile Money. Votre promo sera publiée immédiatement après confirmation.
           </p>
         </div>
       </div>
+    </MainLayout>
   );
 };
 
-export default ArticlePacks;
+export default PromoPacks;

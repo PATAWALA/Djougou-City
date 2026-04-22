@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
-  ShoppingBag,
-  Heart,
+  Bus,
+  AlertTriangle,
   Newspaper,
   Settings,
   LogOut,
@@ -29,7 +29,6 @@ import {
   Shield,
   UserPlus,
   Power,
-  AlertTriangle,
   Search,
   Clock,
   Activity,
@@ -41,11 +40,11 @@ import { supabase } from '../lib/supabase';
 import { formatFCFA, formatNombre } from '../utils/formatPrice';
 import { annoncesData as staticAnnonces } from '../data/annonces';
 import { actualitesData as staticActualites } from '../data/actualites';
-import { necrologiesData as staticNecrologies } from '../data/necrologies';
+import { alertesData as staticAlertes } from '../data/necrologies';
 import type {
   Annonce,
   Actualite,
-  Necrologie,
+  Alerte,
   Profile,
   DashboardStats,
 } from '../types';
@@ -95,7 +94,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend, co
   </motion.div>
 );
 
-type TabType = 'overview' | 'users' | 'admins' | 'annonces' | 'actualites' | 'necrologies' | 'settings';
+type TabType = 'overview' | 'users' | 'admins' | 'annonces' | 'actualites' | 'alertes' | 'settings';
 
 const Dashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -104,7 +103,6 @@ const Dashboard: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // États de connexion
   const [loginTime] = useState<Date>(new Date());
   const [timeElapsed, setTimeElapsed] = useState<string>('');
 
@@ -121,18 +119,17 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, [loginTime]);
 
-  // Statistiques simulées
   const [stats] = useState<DashboardStats>({
-    totalRevenus: 139500,
-    utilisateurs: 47,
-    annoncesActives: 12,
-    articlesBoostes: 3,
-    vuesTotales: 12453,
+    totalRevenus: 175000,
+    utilisateurs: 52,
+    annoncesActives: 28,
+    articlesBoostes: 5,
+    vuesTotales: 18900,
     evolution: {
-      revenus: 12.5,
-      utilisateurs: 8.2,
-      annonces: -3.1,
-      vues: 23.4,
+      revenus: 15.2,
+      utilisateurs: 10.5,
+      annonces: 5.8,
+      vues: 22.1,
     },
   });
 
@@ -140,7 +137,7 @@ const Dashboard: React.FC = () => {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [annonces, setAnnonces] = useState<Annonce[]>(staticAnnonces);
   const [actualites, setActualites] = useState<Actualite[]>(staticActualites);
-  const [necrologies, setNecrologies] = useState<Necrologie[]>(staticNecrologies);
+  const [alertes, setAlertes] = useState<Alerte[]>(staticAlertes);
   const [adminProfile, setAdminProfile] = useState<Profile | null>(null);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
@@ -167,22 +164,21 @@ const Dashboard: React.FC = () => {
   });
 
   const revenusParMois = [
-    { mois: 'Jan', montant: 85000 },
-    { mois: 'Fév', montant: 92000 },
-    { mois: 'Mar', montant: 108000 },
-    { mois: 'Avr', montant: 139500 },
+    { mois: 'Jan', montant: 95000 },
+    { mois: 'Fév', montant: 112000 },
+    { mois: 'Mar', montant: 138000 },
+    { mois: 'Avr', montant: 175000 },
   ];
   const maxRevenu = Math.max(...revenusParMois.map((r) => r.montant));
 
   const repartitionCategories = [
-    { name: 'Vente', value: 45 },
-    { name: 'Location', value: 20 },
-    { name: 'Service', value: 15 },
-    { name: 'Emploi', value: 12 },
-    { name: 'Don', value: 5 },
-    { name: 'Autre', value: 3 },
+    { name: 'Départs bus', value: 45 },
+    { name: 'Fret / Chargement', value: 25 },
+    { name: 'Vente véhicules', value: 15 },
+    { name: 'Emploi transport', value: 10 },
+    { name: 'Location', value: 5 },
   ];
-  const COLORS = ['#C0392B', '#F39C12', '#1E8449', '#3b82f6', '#8b5cf6', '#6b7280'];
+  const COLORS = ['#C0392B', '#F39C12', '#1E8449', '#3b82f6', '#8b5cf6'];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -225,12 +221,11 @@ const Dashboard: React.FC = () => {
         const { data: actualitesData } = await supabase.from('articles').select('*').order('created_at', { ascending: false });
         if (actualitesData && actualitesData.length > 0) setActualites(actualitesData as Actualite[]);
 
-        const { data: necrologiesData } = await supabase
-          .from('necrologies')
+        const { data: alertesData } = await supabase
+          .from('alertes')
           .select('*')
-          .gt('expires_at', new Date().toISOString())
           .order('created_at', { ascending: false });
-        if (necrologiesData && necrologiesData.length > 0) setNecrologies(necrologiesData as Necrologie[]);
+        if (alertesData && alertesData.length > 0) setAlertes(alertesData as Alerte[]);
 
         const { data: settingsData } = await supabase.from('site_settings').select('*').maybeSingle();
         if (settingsData) {
@@ -356,9 +351,9 @@ const Dashboard: React.FC = () => {
     { icon: LayoutDashboard, label: "Vue d'ensemble", tab: 'overview' as TabType },
     { icon: Users, label: 'Utilisateurs', tab: 'users' as TabType },
     { icon: Shield, label: 'Administrateurs', tab: 'admins' as TabType },
-    { icon: ShoppingBag, label: 'Annonces', tab: 'annonces' as TabType },
-    { icon: Newspaper, label: 'Actualités', tab: 'actualites' as TabType },
-    { icon: Heart, label: 'Nécrologie', tab: 'necrologies' as TabType },
+    { icon: Bus, label: 'Départs / Annonces', tab: 'annonces' as TabType },
+    { icon: Newspaper, label: 'Promos / Actus', tab: 'actualites' as TabType },
+    { icon: AlertTriangle, label: 'Alertes trafic', tab: 'alertes' as TabType },
     { icon: Settings, label: 'Paramètres', tab: 'settings' as TabType },
   ];
 
@@ -368,8 +363,8 @@ const Dashboard: React.FC = () => {
       <aside className="hidden lg:flex flex-col w-72 bg-card border-r border-border">
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">D</div>
-            <span className="text-xl font-display font-bold text-dark">DjougouCity</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">CI</div>
+            <span className="text-xl font-display font-bold text-dark">CITransports</span>
           </Link>
           <p className="text-xs text-muted mt-1">Tableau de bord administrateur</p>
         </div>
@@ -401,7 +396,7 @@ const Dashboard: React.FC = () => {
         <div className="lg:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)}>
           <motion.aside initial={{ x: -300 }} animate={{ x: 0 }} exit={{ x: -300 }} className="absolute left-0 top-0 h-full w-72 bg-card border-r border-border p-6" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSidebarOpen(false)} className="absolute top-4 right-4 p-1"><X className="w-6 h-6" /></button>
-            <div className="mb-8"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">D</div><span className="text-xl font-display font-bold text-dark">DjougouCity</span></div></div>
+            <div className="mb-8"><div className="flex items-center gap-3"><div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">CI</div><span className="text-xl font-display font-bold text-dark">CITransports</span></div></div>
             <nav className="space-y-1">
               {navItems.map((item) => (
                 <button key={item.label} onClick={() => { setActiveTab(item.tab); setSidebarOpen(false); }} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-medium ${activeTab === item.tab ? 'bg-primary text-white' : 'text-dark hover:bg-background'}`}>
@@ -478,13 +473,13 @@ const Dashboard: React.FC = () => {
                   <>
                     <div className="mb-6 md:mb-8">
                       <h1 className="text-2xl md:text-3xl font-display font-bold text-dark">Bonjour, {adminProfile?.full_name || 'Administrateur'} 👋</h1>
-                      <p className="text-muted text-sm mt-1">Voici les performances de DjougouCity.</p>
+                      <p className="text-muted text-sm mt-1">Voici les performances de CITransports.</p>
                     </div>
 
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-5 mb-6 md:mb-8">
                       <StatCard title="Revenu total" value={formatFCFA(stats.totalRevenus)} icon={DollarSign} trend={{ value: stats.evolution.revenus, positive: true }} color="bg-primary" />
                       <StatCard title="Utilisateurs" value={users.length.toString()} icon={Users} trend={{ value: stats.evolution.utilisateurs, positive: true }} color="bg-blue-500" />
-                      <StatCard title="Annonces actives" value={annonces.length.toString()} icon={ShoppingBag} trend={{ value: Math.abs(stats.evolution.annonces), positive: false }} color="bg-orange-500" />
+                      <StatCard title="Départs actifs" value={annonces.length.toString()} icon={Bus} trend={{ value: stats.evolution.annonces, positive: true }} color="bg-orange-500" />
                       <StatCard title="Vues totales" value={formatNombre(stats.vuesTotales)} icon={Eye} trend={{ value: stats.evolution.vues, positive: true }} color="bg-green-500" />
                     </div>
 
@@ -509,7 +504,7 @@ const Dashboard: React.FC = () => {
                         <div className="space-y-2 md:space-y-3">
                           <Link to="/publier" className="flex items-center gap-3 p-3 md:p-4 bg-primary/5 rounded-xl border border-primary/20 hover:bg-primary/10 transition-all group">
                             <div className="p-2 bg-primary rounded-full text-white"><Plus className="w-4 h-4" /></div>
-                            <div className="flex-1"><p className="font-semibold text-dark text-sm">Publier une annonce</p></div>
+                            <div className="flex-1"><p className="font-semibold text-dark text-sm">Publier un départ</p></div>
                             <ChevronRight className="w-4 h-4" />
                           </Link>
                           <button className="w-full flex items-center gap-3 p-3 md:p-4 bg-blue-50 rounded-xl border border-blue-200 hover:bg-blue-100 transition-all group">
@@ -537,16 +532,16 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="bg-gradient-to-br from-dark to-gray-900 text-white rounded-2xl p-4 md:p-6 shadow-sm">
                         <h3 className="text-base md:text-lg font-bold mb-3 flex items-center gap-2"><Target className="w-5 h-5 text-secondary" /> Objectif mensuel</h3>
-                        <div className="text-2xl md:text-3xl font-display font-bold text-secondary mb-2">{formatFCFA(250000)}</div>
-                        <p className="text-gray-400 text-xs md:text-sm mb-4">Progression : 56% (139 500 FCFA)</p>
-                        <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: '56%' }} className="h-full bg-secondary" /></div>
+                        <div className="text-2xl md:text-3xl font-display font-bold text-secondary mb-2">{formatFCFA(500000)}</div>
+                        <p className="text-gray-400 text-xs md:text-sm mb-4">Progression : 35% (175 000 FCFA)</p>
+                        <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: '35%' }} className="h-full bg-secondary" /></div>
                       </div>
                       <div className="bg-card rounded-2xl p-4 md:p-6 border border-border shadow-sm">
                         <h3 className="text-base md:text-lg font-bold text-dark mb-3 flex items-center gap-2"><Activity className="w-5 h-5 text-primary" /> Activité récente</h3>
                         <div className="space-y-3">
-                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Nouvelles annonces (24h)</span><span className="font-semibold">8</span></div>
-                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Nouveaux utilisateurs</span><span className="font-semibold">3</span></div>
-                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Avis de décès</span><span className="font-semibold">2</span></div>
+                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Nouveaux départs (24h)</span><span className="font-semibold">12</span></div>
+                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Nouveaux utilisateurs</span><span className="font-semibold">5</span></div>
+                          <div className="flex justify-between items-center"><span className="text-sm text-muted">Alertes trafic actives</span><span className="font-semibold">{alertes.filter(a => a.estActive).length}</span></div>
                         </div>
                       </div>
                     </div>
@@ -562,8 +557,8 @@ const Dashboard: React.FC = () => {
                             <tr className="text-left text-xs font-semibold text-muted"><th className="px-4 md:px-6 py-3">Type</th><th className="px-4 md:px-6 py-3">Client</th><th className="px-4 md:px-6 py-3">Montant</th><th className="px-4 md:px-6 py-3">Date</th><th className="px-4 md:px-6 py-3">Statut</th></tr>
                           </thead>
                           <tbody className="divide-y divide-border">
-                            {[{ type: 'Sponsor', client: 'Restaurant La Terrasse', montant: 25000, date: '2026-04-15', statut: 'Complété' },{ type: 'Annonce Premium', client: 'Moto Bajaj', montant: 1000, date: '2026-04-14', statut: 'Complété' },{ type: 'Nécrologie', client: 'Famille Akotegnon', montant: 1000, date: '2026-04-13', statut: 'En attente' }].map((t, i) => (
-                              <tr key={i}><td className="px-4 md:px-6 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.type.includes('Sponsor') ? 'bg-blue-100 text-blue-700' : t.type.includes('Annonce') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>{t.type}</span></td><td className="px-4 md:px-6 py-3 text-sm text-dark">{t.client}</td><td className="px-4 md:px-6 py-3 text-sm font-semibold text-success">{formatFCFA(t.montant)}</td><td className="px-4 md:px-6 py-3 text-sm text-muted">{new Date(t.date).toLocaleDateString('fr-FR')}</td><td className="px-4 md:px-6 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.statut === 'Complété' ? 'bg-success/10 text-success' : 'bg-yellow-100 text-yellow-700'}`}>{t.statut}</span></td></tr>
+                            {[{ type: 'Sponsor', client: 'TOTAL Energies', montant: 15000, date: '2026-04-20', statut: 'Complété' },{ type: 'Départ Premium', client: 'CITransports', montant: 5000, date: '2026-04-19', statut: 'Complété' },{ type: 'Boost promo', client: 'Garage du Plateau', montant: 3000, date: '2026-04-18', statut: 'En attente' }].map((t, i) => (
+                              <tr key={i}><td className="px-4 md:px-6 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.type.includes('Sponsor') ? 'bg-blue-100 text-blue-700' : t.type.includes('Départ') ? 'bg-orange-100 text-orange-700' : 'bg-purple-100 text-purple-700'}`}>{t.type}</span></td><td className="px-4 md:px-6 py-3 text-sm text-dark">{t.client}</td><td className="px-4 md:px-6 py-3 text-sm font-semibold text-success">{formatFCFA(t.montant)}</td><td className="px-4 md:px-6 py-3 text-sm text-muted">{new Date(t.date).toLocaleDateString('fr-FR')}</td><td className="px-4 md:px-6 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${t.statut === 'Complété' ? 'bg-success/10 text-success' : 'bg-yellow-100 text-yellow-700'}`}>{t.statut}</span></td></tr>
                             ))}
                           </tbody>
                         </table>
@@ -572,7 +567,7 @@ const Dashboard: React.FC = () => {
                   </>
                 )}
 
-                {/* UTILISATEURS */}
+                {/* UTILISATEURS (inchangé) */}
                 {activeTab === 'users' && (
                   <div>
                     <h2 className="text-2xl font-bold text-dark mb-4">Utilisateurs ({users.length})</h2>
@@ -591,7 +586,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* ADMINISTRATEURS */}
+                {/* ADMINISTRATEURS (inchangé) */}
                 {activeTab === 'admins' && (
                   <div className="space-y-8">
                     <div>
@@ -622,17 +617,33 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* ANNONCES */}
+                {/* ANNONCES (Départs / Annonces) */}
                 {activeTab === 'annonces' && (
                   <div>
-                    <h2 className="text-2xl font-bold text-dark mb-4">Annonces ({annonces.length})</h2>
+                    <h2 className="text-2xl font-bold text-dark mb-4">Départs & Annonces ({annonces.length})</h2>
                     <div className="bg-card rounded-2xl border overflow-hidden">
                       <div className="overflow-x-auto">
-                        <table className="w-full min-w-[700px]">
-                          <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Titre</th><th className="px-6 py-3">Catégorie</th><th className="px-6 py-3">Prix</th><th className="px-6 py-3">Contact</th><th className="px-6 py-3"></th></tr></thead>
+                        <table className="w-full min-w-[800px]">
+                          <thead className="bg-background/50">
+                            <tr className="text-left text-xs font-semibold text-muted">
+                              <th className="px-6 py-3">Titre</th>
+                              <th className="px-6 py-3">Catégorie</th>
+                              <th className="px-6 py-3">Destination</th>
+                              <th className="px-6 py-3">Prix</th>
+                              <th className="px-6 py-3">Contact</th>
+                              <th className="px-6 py-3"></th>
+                            </tr>
+                          </thead>
                           <tbody className="divide-y divide-border">
                             {annonces.map((a) => (
-                              <tr key={a.id}><td className="px-6 py-4">{a.titre}</td><td className="px-6 py-4">{a.categorie}</td><td className="px-6 py-4">{a.prix ? formatFCFA(a.prix) : '-'}</td><td className="px-6 py-4">{a.contact}</td><td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td></tr>
+                              <tr key={a.id}>
+                                <td className="px-6 py-4">{a.titre}</td>
+                                <td className="px-6 py-4">{a.categorie}</td>
+                                <td className="px-6 py-4">{a.localisation}</td>
+                                <td className="px-6 py-4">{a.prix ? formatFCFA(a.prix) : 'Gratuit'}</td>
+                                <td className="px-6 py-4">{a.contact}</td>
+                                <td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
+                              </tr>
                             ))}
                           </tbody>
                         </table>
@@ -641,10 +652,10 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* ACTUALITÉS */}
+                {/* ACTUALITÉS (Promos / Actus) */}
                 {activeTab === 'actualites' && (
                   <div>
-                    <h2 className="text-2xl font-bold text-dark mb-4">Actualités ({actualites.length})</h2>
+                    <h2 className="text-2xl font-bold text-dark mb-4">Promos & Actus ({actualites.length})</h2>
                     <div className="bg-card rounded-2xl border overflow-hidden">
                       <div className="overflow-x-auto">
                         <table className="w-full min-w-[600px]">
@@ -660,17 +671,39 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* NÉCROLOGIES */}
-                {activeTab === 'necrologies' && (
+                {/* ALERTES TRAFIC */}
+                {activeTab === 'alertes' && (
                   <div>
-                    <h2 className="text-2xl font-bold text-dark mb-4">Avis de décès ({necrologies.length})</h2>
+                    <h2 className="text-2xl font-bold text-dark mb-4">Alertes trafic ({alertes.length})</h2>
                     <div className="bg-card rounded-2xl border overflow-hidden">
                       <div className="overflow-x-auto">
-                        <table className="w-full min-w-[600px]">
-                          <thead className="bg-background/50"><tr className="text-left text-xs font-semibold text-muted"><th className="px-6 py-3">Défunt</th><th className="px-6 py-3">Famille</th><th className="px-6 py-3">Enterrement</th><th className="px-6 py-3"></th></tr></thead>
+                        <table className="w-full min-w-[700px]">
+                          <thead className="bg-background/50">
+                            <tr className="text-left text-xs font-semibold text-muted">
+                              <th className="px-6 py-3">Titre</th>
+                              <th className="px-6 py-3">Type</th>
+                              <th className="px-6 py-3">Niveau</th>
+                              <th className="px-6 py-3">Localisation</th>
+                              <th className="px-6 py-3">Active</th>
+                              <th className="px-6 py-3"></th>
+                            </tr>
+                          </thead>
                           <tbody className="divide-y divide-border">
-                            {necrologies.map((n) => (
-                              <tr key={n.id}><td className="px-6 py-4">{n.nomDefunt}</td><td className="px-6 py-4">{n.famille}</td><td className="px-6 py-4">{n.dateEnterrement}</td><td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td></tr>
+                            {alertes.map((a) => (
+                              <tr key={a.id}>
+                                <td className="px-6 py-4">{a.titre}</td>
+                                <td className="px-6 py-4">{a.type}</td>
+                                <td className="px-6 py-4">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    a.niveau === 'rouge' ? 'bg-red-100 text-red-700' :
+                                    a.niveau === 'orange' ? 'bg-orange-100 text-orange-700' :
+                                    a.niveau === 'jaune' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                                  }`}>{a.niveau}</span>
+                                </td>
+                                <td className="px-6 py-4">{a.localisation}</td>
+                                <td className="px-6 py-4">{a.estActive ? '✅ Oui' : '❌ Non'}</td>
+                                <td className="px-6 py-4"><button className="text-primary hover:text-red-600"><Trash2 className="w-4 h-4" /></button></td>
+                              </tr>
                             ))}
                           </tbody>
                         </table>
@@ -679,7 +712,7 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
 
-                {/* PARAMÈTRES */}
+                {/* PARAMÈTRES (inchangé) */}
                 {activeTab === 'settings' && (
                   <div className="space-y-8 max-w-2xl">
                     <div>
@@ -719,7 +752,7 @@ const Dashboard: React.FC = () => {
         </div>
       </main>
 
-      {/* MODAL SUPPRESSION ADMIN */}
+      {/* MODALS (inchangées) */}
       {showDeleteAdminModal && adminToDelete && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl border border-border">
@@ -733,7 +766,6 @@ const Dashboard: React.FC = () => {
         </div>
       )}
 
-      {/* MODAL MAINTENANCE */}
       {showMaintenanceModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-card rounded-2xl max-w-md w-full p-6 shadow-xl border border-border">

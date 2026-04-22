@@ -15,9 +15,9 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
     location: 'bg-blue-100 text-blue-700',
     service: 'bg-purple-100 text-purple-700',
     emploi: 'bg-orange-100 text-orange-700',
-    don: 'bg-pink-100 text-pink-700',
-    perdu: 'bg-yellow-100 text-yellow-700',
-    recherche: 'bg-cyan-100 text-cyan-700',
+    depart: 'bg-green-100 text-green-700',
+    arrivage: 'bg-cyan-100 text-cyan-700',
+    chargement: 'bg-amber-100 text-amber-700',
   };
 
   return (
@@ -47,8 +47,8 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
 
       {/* Contenu */}
       <div className="p-5 flex-1 flex flex-col">
-        <div className="flex items-center gap-2 mb-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${categorieColors[annonce.categorie]}`}>
+        <div className="flex items-center gap-2 mb-3 flex-wrap">
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${categorieColors[annonce.categorie] || 'bg-gray-100 text-gray-700'}`}>
             {annonce.categorie}
           </span>
           <span className="text-xs text-muted">
@@ -67,7 +67,9 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div>
             <p className="text-xs text-muted">
-              {annonce.categorie === 'location' ? 'Loyer' : annonce.prix !== null ? 'Prix' : ''}
+              {annonce.categorie === 'location' ? 'Loyer / jour' : 
+               annonce.categorie === 'service' ? 'À partir de' :
+               annonce.prix !== null ? 'Prix' : ''}
             </p>
             <p className="text-2xl font-display font-bold text-primary">
               {annonce.prix !== null ? formatFCFA(annonce.prix) : 'Gratuit'}

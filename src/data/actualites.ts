@@ -12,7 +12,8 @@ export const actualitesData: Actualite[] = [
     likes: 1847,
     commentaires: 134,
     partages: 678,
-    image: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&h=400&fit=crop',
+    categorie: 'transport'
   },
   {
     id: '2',
@@ -25,7 +26,8 @@ export const actualitesData: Actualite[] = [
     likes: 2156,
     commentaires: 98,
     partages: 456,
-    image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=800&h=400&fit=crop',
+    categorie: 'transport'
   },
   {
     id: '3',
@@ -37,7 +39,8 @@ export const actualitesData: Actualite[] = [
     likes: 3567,
     commentaires: 234,
     partages: 1023,
-    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&h=400&fit=crop',
+    categorie: 'transport'
   },
   {
     id: '4',
@@ -49,7 +52,8 @@ export const actualitesData: Actualite[] = [
     likes: 892,
     commentaires: 67,
     partages: 234,
-    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&h=400&fit=crop',
+    categorie: 'transport'
   },
   {
     id: '5',
@@ -61,6 +65,7 @@ export const actualitesData: Actualite[] = [
     likes: 4456,
     commentaires: 312,
     partages: 1890,
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=400&fit=crop'
+    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800&h=400&fit=crop',
+    categorie: 'transport'
   }
 ];

@@ -8,19 +8,20 @@ import {
   CheckCircle,
   Grid,
   List,
-  ShoppingBag,
-  Home,
-  Briefcase,
-  Wrench,
   X,
   Filter,
+  Bus,
+  Package,
+  Wrench,
+  Briefcase,
+  MapPin,
 } from 'lucide-react';
 import MainLayout from '../layouts/MainLayout';
 import PetiteAnnonceCard from '../components/PetiteAnnonceCard';
 import { supabase } from '../lib/supabase';
 import { annoncesData as staticAnnonces } from '../data/annonces';
 import { PRICES, FOLLOWERS } from '../utils/constants';
-import { formatFCFA } from '../utils/formatPrice';
+import { formatFCFA, formatNombre } from '../utils/formatPrice';
 import type { Annonce } from '../types';
 
 const Annonces: React.FC = () => {
@@ -29,14 +30,16 @@ const Annonces: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [annonces, setAnnonces] = useState<Annonce[]>(staticAnnonces);
-  const [loading, setLoading] = useState(false); // plus de spinner bloquant
+  const [loading, setLoading] = useState(false);
 
+  // Catégories orientées transport
   const categories = [
-    { id: 'toutes', label: 'Toutes', icon: ShoppingBag },
-    { id: 'vente', label: 'Ventes', icon: Home },
-    { id: 'location', label: 'Locations', icon: Home },
-    { id: 'service', label: 'Services', icon: Wrench },
-    { id: 'emploi', label: 'Emplois', icon: Briefcase },
+    { id: 'toutes', label: 'Tous les départs', icon: Bus },
+    { id: 'depart', label: 'Départs bus/car', icon: Bus },
+    { id: 'arrivage', label: 'Arrivages', icon: MapPin },
+    { id: 'chargement', label: 'Fret / Chargements', icon: Package },
+    { id: 'vente', label: 'Ventes (véhicules, pièces)', icon: Wrench },
+    { id: 'emploi', label: 'Emplois transport', icon: Briefcase },
   ];
 
   useEffect(() => {
@@ -64,7 +67,8 @@ const Annonces: React.FC = () => {
     const matchCategorie = selectedCategorie === 'toutes' || annonce.categorie === selectedCategorie;
     const matchSearch =
       annonce.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      annonce.description.toLowerCase().includes(searchTerm.toLowerCase());
+      annonce.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      annonce.localisation.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategorie && matchSearch;
   });
 
@@ -76,7 +80,7 @@ const Annonces: React.FC = () => {
       {/* Indicateur de chargement discret */}
       {loading && (
         <div className="fixed bottom-4 right-4 z-50 bg-card shadow-lg rounded-full px-4 py-2 text-sm text-muted border border-border">
-          Mise à jour des annonces...
+          Mise à jour des départs...
         </div>
       )}
 
@@ -89,30 +93,30 @@ const Annonces: React.FC = () => {
             className="max-w-3xl"
           >
             <h1 className="text-3xl md:text-5xl font-display font-bold mb-3">
-              Annonces à Djougou et dans le Nord‑Bénin
+              🚌 Départs, fret et annonces de transport
             </h1>
             <p className="text-lg md:text-xl text-white/90 mb-6">
-              Vendez, achetez, louez ou proposez vos services. Une audience locale de{' '}
-              {FOLLOWERS.toLocaleString()} personnes.
+              Consultez les départs de bus, trouvez du fret ou proposez vos services.
+              Une communauté de {formatNombre(FOLLOWERS)} transporteurs et voyageurs.
             </p>
             <div className="flex flex-wrap gap-4">
-              <Link
-                to="/publier"
-                className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:shadow-xl transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Publier une annonce
-                <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
-                  {formatFCFA(PRICES.ANNONCE)}
-                </span>
-              </Link>
+             <Link
+  to="/publier"
+  className="bg-white text-primary px-6 py-3 rounded-full font-bold flex items-center gap-2 hover:shadow-xl transition-all"
+>
+  <Plus className="w-5 h-5" />
+  Publier une annonces
+  <span className="bg-primary/10 px-3 py-1 rounded-full text-sm">
+    {formatFCFA(PRICES.ANNONCE_DEPART)}
+  </span>
+</Link>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* Barre de filtres */}
-      <div className="bg-card border-b border-border">
+      <div className="bg-card border-b border-border sticky top-16 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4">
           {/* Desktop */}
           <div className="hidden lg:flex items-center gap-4">
@@ -120,7 +124,7 @@ const Annonces: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
               <input
                 type="text"
-                placeholder="Rechercher une annonce..."
+                placeholder="Rechercher une destination, un type de fret..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-8 py-2 rounded-full border border-border bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all text-sm"
@@ -135,12 +139,12 @@ const Annonces: React.FC = () => {
               )}
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategorie(cat.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
                     selectedCategorie === cat.id
                       ? 'bg-primary text-white shadow-sm'
                       : 'bg-background text-dark hover:bg-border'
@@ -174,7 +178,7 @@ const Annonces: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile (identique mais avec catégories adaptées) */}
           <div className="lg:hidden">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
@@ -240,7 +244,7 @@ const Annonces: React.FC = () => {
         </div>
       </div>
 
-      {/* Contenu principal – affiché immédiatement avec données statiques */}
+      {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Annonces Premium */}
         {premiumAnnonces.length > 0 && (
@@ -249,7 +253,7 @@ const Annonces: React.FC = () => {
               <div className="p-1.5 bg-secondary/20 rounded-full">
                 <TrendingUp className="w-4 h-4 text-secondary" />
               </div>
-              <h2 className="text-xl font-display font-bold text-dark">Mises en avant</h2>
+              <h2 className="text-xl font-display font-bold text-dark">🔥 Départs boostés</h2>
               <span className="bg-secondary/10 text-secondary px-2 py-0.5 rounded-full text-xs font-medium">
                 Premium
               </span>
@@ -271,15 +275,15 @@ const Annonces: React.FC = () => {
         <section id="annonces-liste">
           <h2 className="text-xl font-display font-bold text-dark mb-5">
             {selectedCategorie === 'toutes'
-              ? 'Toutes les annonces'
+              ? '🚌 Tous les départs et annonces'
               : categories.find((c) => c.id === selectedCategorie)?.label}
             <span className="text-muted text-base font-normal ml-2">({filteredAnnonces.length})</span>
           </h2>
 
           {filteredAnnonces.length === 0 ? (
             <div className="text-center py-16">
-              <ShoppingBag className="w-16 h-16 text-muted mx-auto mb-4" />
-              <p className="text-xl text-muted">Aucune annonce trouvée</p>
+              <Bus className="w-16 h-16 text-muted mx-auto mb-4" />
+              <p className="text-xl text-muted">Aucun départ ou annonce trouvé</p>
               <button
                 onClick={() => {
                   setSearchTerm('');
@@ -308,30 +312,32 @@ const Annonces: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-2xl font-display font-bold text-dark mb-4">
-                Pourquoi publier sur DjougouCity ?
+                Pourquoi publier sur CITransports ?
               </h3>
               <ul className="space-y-2">
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>Visibilité immédiate auprès de {FOLLOWERS.toLocaleString()} personnes</span>
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                  <span>Visibilité immédiate auprès de {formatNombre(FOLLOWERS)} voyageurs et transporteurs</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                  <span>Départ gratuit ou options boostées pour plus de réservations</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                   <span>Annonce active 30 jours, renouvelable</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                  <span>Option Premium pour être en tête des résultats</span>
                 </li>
               </ul>
             </div>
             <div className="bg-background rounded-2xl p-6">
-              <p className="text-dark font-medium mb-2">💰 Tarif unique</p>
-              <p className="text-3xl font-display font-bold text-primary mb-1">{formatFCFA(PRICES.ANNONCE)}</p>
-              <p className="text-sm text-muted">par annonce, paiement sécurisé</p>
+              <p className="text-dark font-medium mb-2">💰 Publication de départ</p>
+              <p className="text-3xl font-display font-bold text-primary mb-1">
+                {PRICES.ANNONCE === 0 ? 'Gratuit' : formatFCFA(PRICES.ANNONCE)}
+              </p>
+              <p className="text-sm text-muted mb-4">Options de visibilité à partir de {formatFCFA(PRICES.ANNONCE_STANDARD)}</p>
               <Link
                 to="/publier"
-                className="mt-4 inline-block bg-primary text-white px-5 py-2.5 rounded-full text-sm font-semibold"
+                className="inline-block bg-primary text-white px-5 py-2.5 rounded-full text-sm font-semibold"
               >
                 Publier maintenant
               </Link>
