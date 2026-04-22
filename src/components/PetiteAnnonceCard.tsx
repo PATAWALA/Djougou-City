@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { MapPin, Crown, Eye, Phone, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Annonce } from '../types';
-import { formatFCFA } from '../utils/formatPrice';
+import { formatFCFA, formatDate, formatNombre } from '../utils/formatPrice';
 
 interface PetiteAnnonceCardProps {
   annonce: Annonce;
@@ -41,7 +41,7 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
           </div>
         )}
         <div className="absolute top-3 right-3 bg-dark/80 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-          <Eye className="w-3 h-3" /> {annonce.vues}
+          <Eye className="w-3 h-3" /> {formatNombre(annonce.vues)}
         </div>
       </div>
 
@@ -50,6 +50,9 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
         <div className="flex items-center gap-2 mb-3">
           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${categorieColors[annonce.categorie]}`}>
             {annonce.categorie}
+          </span>
+          <span className="text-xs text-muted">
+            {formatDate(annonce.datePublication)}
           </span>
         </div>
 
@@ -64,10 +67,10 @@ const PetiteAnnonceCard: React.FC<PetiteAnnonceCardProps> = ({ annonce }) => {
         <div className="flex items-center justify-between pt-3 border-t border-border">
           <div>
             <p className="text-xs text-muted">
-              {annonce.categorie === 'location' ? 'Loyer' : annonce.prix ? 'Prix' : ''}
+              {annonce.categorie === 'location' ? 'Loyer' : annonce.prix !== null ? 'Prix' : ''}
             </p>
             <p className="text-2xl font-display font-bold text-primary">
-              {annonce.prix ? formatFCFA(annonce.prix) : 'Gratuit'}
+              {annonce.prix !== null ? formatFCFA(annonce.prix) : 'Gratuit'}
             </p>
           </div>
         </div>

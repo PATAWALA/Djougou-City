@@ -1,34 +1,28 @@
 export const CONTACT = {
-  PHONE: '67 23 23 39',
-  ADDRESS: 'Mairie, Djougou, Benin, 125',
-  EMAIL: 'contact@djougoucity.bj',
-  FACEBOOK: 'La Ville De Djougou'
+  PHONE: '+225 05 74 36 63 52',
+  ADDRESS: 'Plateau, Abidjan, Côte d\'Ivoire',
+  EMAIL: 'ci.transport225@gmail.com',
+  FACEBOOK: 'Côte d\'Ivoire Transports'
 };
 
-export const FOLLOWERS = 28000;
+export const FOLLOWERS = 264000; // 264 K followers
 
 export const PRICES = {
-  SPONSOR: 25000,
-  ANNONCE: 500,
-  ANNONCE_BASIC: 500,
-  ANNONCE_STANDARD: 1000,
-  ANNONCE_PREMIUM: 2500,
-  NECROLOGIE: 1000,
-  NECROLOGIE_SIMPLE: 1000,
-  NECROLOGIE_HOMMAGE: 2500,
-  NECROLOGIE_CEREMONIE: 5000,
-  BOOST_ARTICLE: 3000,
-  BOOST_COUP_DE_POUCE: 1000,
-  BOOST_VISIBILITE: 3000,
-  BOOST_VIRAL: 5000,
-  PREMIUM: 500,
+  SPONSOR: 15000,           // Prix pour épingler un départ
+  ANNONCE: 0,               // Publier un départ est gratuit
+  ANNONCE_BASIC: 0,
+  ANNONCE_STANDARD: 2500,   // Option booster un départ
+  ANNONCE_PREMIUM: 5000,
+  NECROLOGIE: 0,            // Alertes info trafic gratuites
+  BOOST_ARTICLE: 3000,      // Booster une promo/offre
+  PREMIUM: 25000,           // Abonnement mensuel Agence Pro
 };
 
 export const STATS_DEMO = {
-  totalMensuel: 87500,
-  sponsorsActifs: 3,
-  annoncesActives: 12,
-  necrologiesMois: 4,
-  premiumAbonnes: 8,
-  objectifMensuel: 250000
+  totalMensuel: 175000,
+  sponsorsActifs: 5,
+  annoncesActives: 24,
+  necrologiesMois: 3,
+  premiumAbonnes: 12,
+  objectifMensuel: 500000
 };

@@ -8,15 +8,16 @@ export interface Sponsor {
   montant: number;
   dateExpiration: string;
   actif: boolean;
-  categorie: 'restaurant' | 'boutique' | 'service' | 'transport';
+  categorie: 'restaurant' | 'boutique' | 'service' | 'transport'; // ✅ "transport" existe déjà
 }
 
 export interface Annonce {
   id: string;
   titre: string;
   description: string;
-  prix: number | null; // peut être null pour don, perdu, etc.
-  categorie: 'vente' | 'location' | 'service' | 'emploi' | 'don' | 'perdu' | 'recherche';
+  prix: number | null;
+  // ✅ Ajout de la catégorie "depart" pour les trajets de bus
+  categorie: 'vente' | 'location' | 'service' | 'emploi' | 'don' | 'perdu' | 'recherche' | 'depart';
   contact: string;
   localisation: string;
   datePublication: string;
@@ -27,6 +28,7 @@ export interface Annonce {
 
 export interface Necrologie {
   id: string;
+  // ✅ On garde le nom "nomDefunt" mais on l'utilisera pour "Titre de l'alerte"
   nomDefunt: string;
   dateDeces: string;
   dateEnterrement: string;
