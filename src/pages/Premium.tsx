@@ -14,7 +14,6 @@ import {
   ArrowLeft,
   Bus,
   Package,
-  BarChart3,
   Headphones,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
