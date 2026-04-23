@@ -39,13 +39,14 @@ const Home: React.FC = () => {
   const [filtreAnnonces, setFiltreAnnonces] = useState<'tous' | 'departs' | 'annonces'>('tous');
 
   const heroImages = [
-    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&fit=crop&q=80', // Camion
-    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&fit=crop&q=80', // Bus
-    'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=1200&fit=crop&q=80', // Camion plateau
-    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1200&fit=crop&q=80', // Semi-remorque
+    'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1200&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=1200&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1580674285054-bed31e145f59?w=1200&fit=crop&q=80',
   ];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  // Animation du carrousel hero
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
@@ -53,6 +54,7 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
+  // Chargement des données depuis Supabase
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -93,6 +95,27 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
+  // 🔥 FORCER LE HEADER À RESTER STICKY APRÈS CHARGEMENT
+  useEffect(() => {
+    if (loading) return;
+
+    const header = document.querySelector('header');
+    if (header) {
+      header.style.position = 'sticky';
+      header.style.top = '0';
+      header.style.zIndex = '9999';
+    }
+
+    // Nettoyage au démontage
+    return () => {
+      if (header) {
+        header.style.position = '';
+        header.style.top = '';
+        header.style.zIndex = '';
+      }
+    };
+  }, [loading]);
+
   const promosBoostees = actualites.filter((a) => a.estBoosted).slice(0, 3);
 
   // Annonces filtrées pour l'affichage
@@ -122,14 +145,15 @@ const Home: React.FC = () => {
       ) : (
         <>
           {/* Hero Section */}
-          <section
-            className="relative bg-cover bg-center text-white overflow-hidden transition-all duration-1000"
-            style={{
-              backgroundImage: `url('${heroImages[currentImageIndex]}')`,
-              backgroundColor: '#1A1A2E',
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30"></div>
+          <section className="relative bg-cover bg-center text-white transition-all duration-1000 isolate">
+            <div
+              className="absolute inset-0 bg-cover bg-center -z-10"
+              style={{
+                backgroundImage: `url('${heroImages[currentImageIndex]}')`,
+                backgroundColor: '#1A1A2E',
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 -z-10"></div>
             <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

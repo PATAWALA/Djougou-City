@@ -14,13 +14,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   hideFooter = false 
 }) => {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <>
       {!hideHeader && <Header />}
-      <main className="flex-1">
+      <main className="min-h-screen bg-background overflow-x-hidden">
         {children}
       </main>
       {!hideFooter && <Footer />}
-    </div>
+    </>
   );
 };
 

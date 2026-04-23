@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Megaphone, Menu, X, User, LogOut, TrendingUp } from 'lucide-react';
+import { MapPin, Phone, Megaphone, Menu, X, User, LogOut } from 'lucide-react';
 import { FaFacebookF, FaWhatsapp } from 'react-icons/fa';
 import { supabase } from '../lib/supabase';
-import { formatNombre } from '../utils/formatPrice';
-import {  CONTACT } from '../utils/constants';
+import { CONTACT } from '../utils/constants';
 
-export const FOLLOWERS = 64000; // 264 K followers
+export const FOLLOWERS = 64000; // 64 K followers
 
 const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -48,19 +47,19 @@ const Header: React.FC = () => {
   };
 
   const navItems = [
-  { label: 'Accueil', path: '/' },
-  { label: 'Annonces', path: '/annonces' },
-  { label: 'Alertes', path: '/alertes' },
-  { label: 'Offres', path: '/actualites' }, // la page s'appelle toujours /actualites
-  { label: 'Premium', path: '/premium' },
-  { label: 'Publier', path: '/publier' },
-];
+    { label: 'Accueil', path: '/' },
+    { label: 'Annonces', path: '/annonces' },
+    { label: 'Alertes', path: '/alertes' },
+    { label: 'Offres', path: '/actualites' },
+    { label: 'Premium', path: '/premium' },
+    { label: 'Publier', path: '/publier' },
+  ];
 
   return (
     <header className="bg-card shadow-lg sticky top-0 z-50">
-      {/* Barre supérieure avec followers Facebook */}
+      {/* Barre supérieure */}
       <div className="bg-dark text-white py-2">
-        <div className="max-w-7xl mx-auto px-4 flex flex-wrap justify-between items-center text-sm gap-2">
+        <div className="max-w-7xl mx-auto px-4 flex justify-between items-center text-sm">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <MapPin className="w-4 h-4" /> {CONTACT.ADDRESS}
@@ -72,19 +71,15 @@ const Header: React.FC = () => {
               <Phone className="w-4 h-4" /> {CONTACT.PHONE}
             </a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <a 
               href={CONTACT.FACEBOOK_URL} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="flex items-center gap-2 bg-[#1877F2]/20 hover:bg-[#1877F2]/30 transition-colors px-3 py-1 rounded-full"
+              className="text-[#1877F2] hover:opacity-80 transition-opacity p-1"
               aria-label="Facebook"
             >
-              <FaFacebookF className="w-3.5 h-3.5 text-[#1877F2]" />
-              <span className="text-xs font-medium flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {formatNombre(FOLLOWERS)} followers
-              </span>
+              <FaFacebookF className="w-4 h-4" />
             </a>
             <a 
               href={`https://wa.me/2250574366352`} 
@@ -144,7 +139,7 @@ const Header: React.FC = () => {
               </Link>
               <button
                 onClick={handleLogout}
-                className="absolute top-full left-0 mt-2 hidden group-hover:flex items-center gap-2 bg-card shadow-lg rounded-lg px-4 py-2 text-sm text-primary hover:bg-red-50 whitespace-nowrap border border-border"
+                className="absolute top-full left-0 mt-2 hidden group-hover:flex items-center gap-2 bg-card shadow-lg rounded-lg px-4 py-2 text-sm text-primary hover:bg-red-50 whitespace-nowrap"
               >
                 <LogOut className="w-4 h-4" />
                 Déconnexion
