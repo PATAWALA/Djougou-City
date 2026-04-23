@@ -35,7 +35,6 @@ const Home: React.FC = () => {
   const [sponsors, setSponsors] = useState<Sponsor[]>(staticSponsors);
   const [loading, setLoading] = useState(false);
 
-  // Filtre local pour la section Annonces
   const [filtreAnnonces, setFiltreAnnonces] = useState<'tous' | 'departs' | 'annonces'>('tous');
 
   const heroImages = [
@@ -46,7 +45,6 @@ const Home: React.FC = () => {
   ];
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // Animation du carrousel hero
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % heroImages.length);
@@ -54,7 +52,6 @@ const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [heroImages.length]);
 
-  // Chargement des données depuis Supabase
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -95,18 +92,14 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  // 🔥 FORCER LE HEADER À RESTER STICKY APRÈS CHARGEMENT
   useEffect(() => {
     if (loading) return;
-
     const header = document.querySelector('header');
     if (header) {
       header.style.position = 'sticky';
       header.style.top = '0';
       header.style.zIndex = '9999';
     }
-
-    // Nettoyage au démontage
     return () => {
       if (header) {
         header.style.position = '';
@@ -118,7 +111,6 @@ const Home: React.FC = () => {
 
   const promosBoostees = actualites.filter((a) => a.estBoosted).slice(0, 3);
 
-  // Annonces filtrées pour l'affichage
   const annoncesFiltrees = annonces.filter((a) => {
     if (filtreAnnonces === 'departs')
       return a.categorie === 'depart' || a.categorie === 'chargement';
@@ -148,19 +140,11 @@ const Home: React.FC = () => {
           <section className="relative bg-cover bg-center text-white transition-all duration-1000 isolate">
             <div
               className="absolute inset-0 bg-cover bg-center -z-10"
-              style={{
-                backgroundImage: `url('${heroImages[currentImageIndex]}')`,
-                backgroundColor: '#1A1A2E',
-              }}
+              style={{ backgroundImage: `url('${heroImages[currentImageIndex]}')`, backgroundColor: '#1A1A2E' }}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30 -z-10"></div>
             <div className="relative max-w-7xl mx-auto px-4 py-16 md:py-24">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="max-w-3xl"
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-3xl">
                 <span className="inline-flex items-center gap-2 bg-primary/80 backdrop-blur-sm px-4 py-2 rounded-full text-sm font-bold mb-6">
                   <MapPin className="w-4 h-4" />
                   Plateau, Abidjan • {formatNombre(FOLLOWERS)} transporteurs connectés
@@ -171,20 +155,12 @@ const Home: React.FC = () => {
                 </h1>
                 <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl">
                   Publiez vos départs, trouvez du fret et recevez des alertes trafic en temps réel.
-                  Rejoignez la plus grande communauté du transport routier en Côte d'Ivoire.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Link
-                    to="/publier"
-                    className="bg-secondary text-dark px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2"
-                  >
-                    <Bus className="w-5 h-5" />
-                    Publier une annonce
+                  <Link to="/publier" className="bg-secondary text-dark px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all flex items-center gap-2">
+                    <Bus className="w-5 h-5" /> Publier une annonce
                   </Link>
-                  <Link
-                    to="/premium"
-                    className="border-2 border-white bg-white/10 backdrop-blur-sm hover:bg-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all"
-                  >
+                  <Link to="/premium" className="border-2 border-white bg-white/10 backdrop-blur-sm hover:bg-white/20 px-6 md:px-8 py-3 md:py-4 rounded-full font-bold text-base md:text-lg transition-all">
                     Devenir Sponsor
                   </Link>
                 </div>
@@ -192,10 +168,7 @@ const Home: React.FC = () => {
             </div>
             <div className="absolute bottom-0 left-0 right-0">
               <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0 120L60 105C120 90 240 60 360 52.5C480 45 600 60 720 67.5C840 75 960 75 1080 67.5C1200 60 1320 45 1380 37.5L1440 30V120H0Z"
-                  fill="#F8FAFC"
-                />
+                <path d="M0 120L60 105C120 90 240 60 360 52.5C480 45 600 60 720 67.5C840 75 960 75 1080 67.5C1200 60 1320 45 1380 37.5L1440 30V120H0Z" fill="#F8FAFC" />
               </svg>
             </div>
           </section>
@@ -204,73 +177,22 @@ const Home: React.FC = () => {
             {/* Opportunités de revenus */}
             <section className="mb-16 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-3xl p-8 md:p-12 border border-primary/20">
               <div className="text-center mb-8">
-                <h2 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">
-                  Développez votre activité avec CITransports
-                </h2>
-                <p className="text-muted text-lg max-w-3xl mx-auto">
-                  Transporteurs, chargeurs, mécaniciens ou commerçants : notre plateforme vous ouvre de nouvelles sources de revenus.
-                </p>
+                <h2 className="text-3xl md:text-4xl font-display font-bold text-dark mb-3">Développez votre activité avec CITransports</h2>
+                <p className="text-muted text-lg max-w-3xl mx-auto">Transporteurs, chargeurs, mécaniciens ou commerçants : notre plateforme vous ouvre de nouvelles sources de revenus.</p>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                  {
-                    icon: Bus,
-                    title: 'Transporteurs',
-                    description: 'Publiez vos départs et remplissez vos cars. Gagnez en moyenne 150 000 F par jour.',
-                    gain: '150 000 F/jour',
-                    color: 'bg-blue-100 text-blue-700',
-                    link: '/publier',
-                    linkText: 'Publier un départ',
-                  },
-                  {
-                    icon: Package,
-                    title: 'Propriétaires de camions',
-                    description: 'Trouvez du fret rapidement. Location avec ou sans chauffeur. Jusqu\'à 75 000 F/jour.',
-                    gain: '75 000 F/jour',
-                    color: 'bg-green-100 text-green-700',
-                    link: '/annonces',
-                    linkText: 'Voir le fret',
-                  },
-                  {
-                    icon: TrendingUp,
-                    title: 'Sponsors & Agences',
-                    description: 'Boostez votre visibilité et apparaissez en tête des recherches. +300% de contacts.',
-                    gain: '+300% visibilité',
-                    color: 'bg-purple-100 text-purple-700',
-                    link: '/premium',
-                    linkText: 'Devenir Sponsor',
-                  },
-                  {
-                    icon: Users,
-                    title: 'Partenaires',
-                    description: 'Garages, stations, vendeurs de pièces : référencez votre activité et attirez des clients qualifiés.',
-                    gain: 'Clients ciblés',
-                    color: 'bg-orange-100 text-orange-700',
-                    link: '/contact',
-                    linkText: 'Devenir partenaire',
-                  },
+                  { icon: Bus, title: 'Transporteurs', description: 'Publiez vos départs et remplissez vos cars. Gagnez en moyenne 150 000 F par jour.', gain: '150 000 F/jour', color: 'bg-blue-100 text-blue-700', link: '/publier', linkText: 'Publier un départ' },
+                  { icon: Package, title: 'Propriétaires de camions', description: 'Trouvez du fret rapidement. Location avec ou sans chauffeur. Jusqu\'à 75 000 F/jour.', gain: '75 000 F/jour', color: 'bg-green-100 text-green-700', link: '/annonces', linkText: 'Voir le fret' },
+                  { icon: TrendingUp, title: 'Sponsors & Agences', description: 'Boostez votre visibilité et apparaissez en tête des recherches. +300% de contacts.', gain: '+300% visibilité', color: 'bg-purple-100 text-purple-700', link: '/premium', linkText: 'Devenir Sponsor' },
+                  { icon: Users, title: 'Partenaires', description: 'Garages, stations, vendeurs de pièces : référencez votre activité et attirez des clients qualifiés.', gain: 'Clients ciblés', color: 'bg-orange-100 text-orange-700', link: '/contact', linkText: 'Devenir partenaire' },
                 ].map((item, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    viewport={{ once: true }}
-                    className="bg-card rounded-2xl p-6 shadow-lg border border-border hover:shadow-xl transition-all"
-                  >
-                    <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-4`}>
-                      <item.icon className="w-7 h-7" />
-                    </div>
+                  <motion.div key={index} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} className="bg-card rounded-2xl p-6 shadow-lg border border-border hover:shadow-xl transition-all">
+                    <div className={`w-14 h-14 ${item.color} rounded-2xl flex items-center justify-center mb-4`}><item.icon className="w-7 h-7" /></div>
                     <h3 className="text-xl font-bold text-dark mb-2">{item.title}</h3>
                     <p className="text-muted text-sm mb-3">{item.description}</p>
                     <p className="text-primary font-bold text-lg mb-4">{item.gain}</p>
-                    <Link
-                      to={item.link}
-                      className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all"
-                    >
-                      {item.linkText} <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    <Link to={item.link} className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all">{item.linkText} <ArrowRight className="w-4 h-4" /></Link>
                   </motion.div>
                 ))}
               </div>
@@ -279,51 +201,25 @@ const Home: React.FC = () => {
             {/* Promos boostées */}
             {promosBoostees.length > 0 && (
               <section className="mb-16">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-secondary/20 rounded-full">
-                      <Newspaper className="w-6 h-6 text-secondary" />
-                    </div>
+                    <div className="p-2 bg-secondary/20 rounded-full"><Newspaper className="w-6 h-6 text-secondary" /></div>
                     <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Offres et promotions</h2>
-                    <span className="bg-secondary/20 text-dark text-sm font-semibold px-3 py-1 rounded-full">Boostés</span>
+                    <span className="bg-secondary/20 text-dark text-sm font-semibold px-3 py-1 rounded-full hidden sm:inline">Boostés</span>
                   </div>
-                  <Link to="/actualites" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                    Toutes les offres <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <Link to="/actualites" className="text-primary font-semibold flex items-center gap-1 hover:gap-2 transition-all whitespace-nowrap text-sm">Toutes les offres <ArrowRight className="w-4 h-4" /></Link>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {promosBoostees.map((article, index) => (
-                    <motion.article
-                      key={article.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      viewport={{ once: true }}
-                      whileHover={{ y: -5 }}
-                      className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden group"
-                    >
+                    <motion.article key={article.id} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} whileHover={{ y: -5 }} className="bg-card rounded-2xl shadow-lg border border-border overflow-hidden group">
                       <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={article.image || 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&fit=crop'}
-                          alt={article.titre}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute top-3 left-3">
-                          <span className="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-                            Boosté • {formatFCFA(article.montantBoost || 0)}
-                          </span>
-                        </div>
+                        <img src={article.image || 'https://images.unsplash.com/photo-1464219789935-c2d9d9aba644?w=800&fit=crop'} alt={article.titre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <div className="absolute top-3 left-3"><span className="bg-secondary text-dark text-xs font-bold px-3 py-1 rounded-full shadow-md flex items-center gap-1">Boosté • {formatFCFA(article.montantBoost || 0)}</span></div>
                       </div>
                       <div className="p-5">
                         <h3 className="font-bold text-dark text-lg mb-2 line-clamp-2">{article.titre}</h3>
                         <p className="text-muted text-sm line-clamp-3 mb-4">{article.contenu}</p>
-                        <Link
-                          to={`/actualites/${article.id}`}
-                          className="inline-flex items-center gap-1 text-primary font-semibold text-sm hover:gap-2 transition-all"
-                        >
-                          Voir l'offre <ArrowRight className="w-4 h-4" />
-                        </Link>
+                        <Link to={`/actualites/${article.id}`} className="inline-flex items-center gap-1 text-primary font-semibold text-sm hover:gap-2 transition-all">Voir l'offre <ArrowRight className="w-4 h-4" /></Link>
                       </div>
                     </motion.article>
                   ))}
@@ -331,143 +227,84 @@ const Home: React.FC = () => {
               </section>
             )}
 
-            {/* Section Annonces avec filtres */}
+            {/* Section Annonces avec filtres - RESPONSIVE */}
             <section className="mb-16">
               <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <Bus className="w-6 h-6 text-primary" />
-                  </div>
-                  <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Annonces récentes</h2>
+                  <div className="p-2 bg-primary/10 rounded-full"><Bus className="w-6 h-6 text-primary" /></div>
+                  <h2 className="text-xl md:text-3xl font-display font-bold text-dark">Annonces récentes</h2>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                   {/* Filtres */}
-                  <div className="flex bg-background rounded-full p-1 border border-border">
-                    <button
-                      onClick={() => setFiltreAnnonces('tous')}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filtreAnnonces === 'tous'
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'text-muted hover:text-dark'
-                      }`}
-                    >
-                      Tous
-                    </button>
-                    <button
-                      onClick={() => setFiltreAnnonces('departs')}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filtreAnnonces === 'departs'
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'text-muted hover:text-dark'
-                      }`}
-                    >
-                      Départs / Fret
-                    </button>
-                    <button
-                      onClick={() => setFiltreAnnonces('annonces')}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
-                        filtreAnnonces === 'annonces'
-                          ? 'bg-primary text-white shadow-sm'
-                          : 'text-muted hover:text-dark'
-                      }`}
-                    >
-                      Ventes / Services
-                    </button>
+                  <div className="flex bg-background rounded-full p-1 border border-border self-start overflow-x-auto">
+                    <button onClick={() => setFiltreAnnonces('tous')} className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${filtreAnnonces === 'tous' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-dark'}`}>Tous</button>
+                    <button onClick={() => setFiltreAnnonces('departs')} className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${filtreAnnonces === 'departs' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-dark'}`}>Départs / Fret</button>
+                    <button onClick={() => setFiltreAnnonces('annonces')} className={`px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${filtreAnnonces === 'annonces' ? 'bg-primary text-white shadow-sm' : 'text-muted hover:text-dark'}`}>Ventes / Services</button>
                   </div>
 
-                  <Link
-                    to="/publier"
-                    className="bg-primary text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-dark transition-colors flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Bus className="w-4 h-4" />
+                  <Link to="/publier" className="bg-primary text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-semibold hover:bg-dark transition-colors flex items-center justify-center gap-1 whitespace-nowrap">
+                    <Bus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     Publier ({formatFCFA(PRICES.ANNONCE_DEPART || 500)})
                   </Link>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {annoncesTriees.map((annonce) => (
                   <PetiteAnnonceCard key={annonce.id} annonce={annonce} />
                 ))}
               </div>
               {annoncesTriees.length === 0 && (
-                <div className="text-center py-10 text-muted">
-                  Aucune annonce ne correspond à ce filtre.
-                </div>
+                <div className="text-center py-10 text-muted text-sm">Aucune annonce ne correspond à ce filtre.</div>
               )}
               <div className="text-center mt-8">
-                <Link to="/annonces" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-                  Voir toutes les annonces <ArrowRight className="w-4 h-4" />
-                </Link>
+                <Link to="/annonces" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all text-sm">Voir toutes les annonces <ArrowRight className="w-4 h-4" /></Link>
               </div>
             </section>
 
-            {/* Alertes et Sponsors */}
+            {/* Alertes et Sponsors - RESPONSIVE */}
             <section className="mb-16">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Alertes */}
                 <div>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-red-100 rounded-full">
-                      <AlertTriangle className="w-6 h-6 text-red-600" />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Alertes trafic</h2>
+                    <div className="p-2 bg-red-100 rounded-full"><AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" /></div>
+                    <h2 className="text-xl md:text-3xl font-display font-bold text-dark">Alertes trafic</h2>
                   </div>
-                  <div className="space-y-4">
+                  <div className="space-y-3 md:space-y-4">
                     {alertesActives.map((alerte) => (
                       <AlerteCard key={alerte.id} alerte={alerte} />
                     ))}
                   </div>
                   <div className="mt-4">
-                    <Link to="/alertes" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-                      Toutes les alertes <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    <Link to="/alertes" className="inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all">Toutes les alertes <ArrowRight className="w-4 h-4" /></Link>
                   </div>
                 </div>
 
+                {/* Sponsors */}
                 <div>
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-primary/10 rounded-full">
-                      <Megaphone className="w-6 h-6 text-primary" />
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-display font-bold text-dark">Sponsors</h2>
+                    <div className="p-2 bg-primary/10 rounded-full"><Megaphone className="w-5 h-5 sm:w-6 sm:h-6 text-primary" /></div>
+                    <h2 className="text-xl md:text-3xl font-display font-bold text-dark">Sponsors</h2>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {sponsors
-                      .filter((s) => s.actif)
-                      .slice(0, 4)
-                      .map((sponsor) => (
-                        <motion.div
-                          key={sponsor.id}
-                          whileHover={{ y: -3 }}
-                          className="bg-card rounded-xl p-4 shadow-sm border border-border flex flex-col items-center text-center"
-                        >
-                          <img
-                            src={sponsor.logo}
-                            alt={sponsor.nom}
-                            className="w-20 h-20 object-cover rounded-full mb-3 border-2 border-primary/20"
-                          />
-                          <h4 className="font-bold text-dark text-sm">{sponsor.nom}</h4>
-                          <p className="text-xs text-muted mt-1">{sponsor.categorie}</p>
-                          <p className="text-xs text-primary mt-1">📍 {sponsor.localisation}</p>
-                          <span className="mt-2 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">Sponsor</span>
-                        </motion.div>
-                      ))}
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                    {sponsors.filter((s) => s.actif).slice(0, 4).map((sponsor) => (
+                      <motion.div key={sponsor.id} whileHover={{ y: -3 }} className="bg-card rounded-xl p-3 sm:p-4 shadow-sm border border-border flex flex-col items-center text-center">
+                        <img src={sponsor.logo} alt={sponsor.nom} className="w-14 h-14 sm:w-20 sm:h-20 object-cover rounded-full mb-2 sm:mb-3 border-2 border-primary/20" />
+                        <h4 className="font-bold text-dark text-xs sm:text-sm">{sponsor.nom}</h4>
+                        <p className="text-[10px] sm:text-xs text-muted mt-0.5 sm:mt-1">{sponsor.categorie}</p>
+                        <p className="text-[10px] sm:text-xs text-primary mt-0.5 sm:mt-1">📍 {sponsor.localisation}</p>
+                        <span className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs bg-primary/10 text-primary px-2 py-0.5 sm:py-1 rounded-full">Sponsor</span>
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="mt-6 p-5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-primary/30">
-                    <p className="text-dark font-semibold mb-2 flex items-center gap-2">
-                      <Truck className="w-5 h-5 text-primary" />
-                      Votre entreprise ici ?
+                  <div className="mt-6 p-4 sm:p-5 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl border border-primary/30">
+                    <p className="text-dark font-semibold mb-2 flex items-center gap-2 text-sm">
+                      <Truck className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Votre entreprise ici ?
                     </p>
-                    <p className="text-sm text-muted mb-3">
-                      Touchez +{formatNombre(FOLLOWERS)} transporteurs et voyageurs en Côte d'Ivoire.
-                    </p>
-                    <Link
-                      to="/premium"
-                      className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-dark transition-colors"
-                    >
-                      Devenir Sponsor • {formatFCFA(PRICES.SPONSOR)}/mois <ArrowRight className="w-3 h-3" />
-                    </Link>
+                    <p className="text-xs sm:text-sm text-muted mb-3">Touchez +{formatNombre(FOLLOWERS)} transporteurs et voyageurs en Côte d'Ivoire.</p>
+                    <Link to="/premium" className="inline-flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-full text-xs sm:text-sm font-semibold hover:bg-dark transition-colors">Devenir Sponsor • {formatFCFA(PRICES.SPONSOR)}/mois <ArrowRight className="w-3 h-3" /></Link>
                   </div>
                 </div>
               </div>
@@ -476,88 +313,29 @@ const Home: React.FC = () => {
             {/* Pourquoi choisir CITransports */}
             <section className="bg-card rounded-3xl p-8 md:p-12 shadow-lg border border-border mb-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                >
-                  <h2 className="text-3xl md:text-4xl font-display font-bold text-dark mb-4">
-                    Pourquoi choisir CITransports ?
-                  </h2>
-                  <p className="text-muted text-lg mb-6">
-                    La plateforme 100% ivoirienne conçue par et pour les professionnels du transport routier.
-                  </p>
+                <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+                  <h2 className="text-3xl md:text-4xl font-display font-bold text-dark mb-4">Pourquoi choisir CITransports ?</h2>
+                  <p className="text-muted text-lg mb-6">La plateforme 100% ivoirienne conçue par et pour les professionnels du transport routier.</p>
                   <ul className="space-y-3 text-dark">
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span>
-                        <strong>Publication gratuite</strong> pour vos départs de bus
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span>
-                        <strong>Alertes trafic</strong> en temps réel (accidents, pluie, contrôles)
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span>
-                        <strong>+{formatNombre(FOLLOWERS)}</strong> utilisateurs actifs chaque mois
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span>
-                        <strong>Paiement sécurisé</strong> par Mobile Money (Orange, MTN, Moov)
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" />
-                      <span>
-                        <strong>Support 7j/7</strong> par téléphone et WhatsApp
-                      </span>
-                    </li>
+                    <li className="flex items-start gap-3"><CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" /><span><strong>Publication gratuite</strong> pour vos départs de bus</span></li>
+                    <li className="flex items-start gap-3"><CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" /><span><strong>Alertes trafic</strong> en temps réel (accidents, pluie, contrôles)</span></li>
+                    <li className="flex items-start gap-3"><CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" /><span><strong>+{formatNombre(FOLLOWERS)}</strong> utilisateurs actifs chaque mois</span></li>
+                    <li className="flex items-start gap-3"><CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" /><span><strong>Paiement sécurisé</strong> par Mobile Money (Orange, MTN, Moov)</span></li>
+                    <li className="flex items-start gap-3"><CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-1" /><span><strong>Support 7j/7</strong> par téléphone et WhatsApp</span></li>
                   </ul>
                 </motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-8 text-white"
-                >
-                  <h3 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                    <Shield className="w-6 h-6" />
-                    Rejoignez la communauté
-                  </h3>
-                  <p className="text-white/90 mb-6">
-                    Plus de <strong className="text-2xl">{formatNombre(FOLLOWERS)}</strong> transporteurs, chargeurs
-                    et voyageurs utilisent déjà CITransports.
-                  </p>
+                <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-8 text-white">
+                  <h3 className="text-2xl font-bold mb-4 flex items-center gap-2"><Shield className="w-6 h-6" />Rejoignez la communauté</h3>
+                  <p className="text-white/90 mb-6">Plus de <strong className="text-2xl">{formatNombre(FOLLOWERS)}</strong> transporteurs, chargeurs et voyageurs utilisent déjà CITransports.</p>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="bg-white/20 p-3 rounded-full">
-                      <Users className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold">{formatNombre(156)}</p>
-                      <p className="text-sm text-white/80">départs publiés aujourd'hui</p>
-                    </div>
+                    <div className="bg-white/20 p-3 rounded-full"><Users className="w-6 h-6" /></div>
+                    <div><p className="text-3xl font-bold">{formatNombre(156)}</p><p className="text-sm text-white/80">départs publiés aujourd'hui</p></div>
                   </div>
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="bg-white/20 p-3 rounded-full">
-                      <CreditCard className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <p className="text-3xl font-bold">{formatFCFA(2500000)}</p>
-                      <p className="text-sm text-white/80">de transactions ce mois</p>
-                    </div>
+                    <div className="bg-white/20 p-3 rounded-full"><CreditCard className="w-6 h-6" /></div>
+                    <div><p className="text-3xl font-bold">{formatFCFA(2500000)}</p><p className="text-sm text-white/80">de transactions ce mois</p></div>
                   </div>
-                  <Link
-                    to="/auth"
-                    className="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-full font-bold hover:bg-secondary transition-all w-full justify-center"
-                  >
-                    Créer un compte gratuit <ArrowRight className="w-4 h-4" />
-                  </Link>
+                  <Link to="/auth" className="inline-flex items-center gap-2 bg-white text-primary px-6 py-3 rounded-full font-bold hover:bg-secondary transition-all w-full justify-center">Créer un compte gratuit <ArrowRight className="w-4 h-4" /></Link>
                 </motion.div>
               </div>
             </section>

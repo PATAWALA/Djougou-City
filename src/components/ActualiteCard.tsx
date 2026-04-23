@@ -25,9 +25,13 @@ const ActualiteCard: React.FC<ActualiteCardProps> = ({ actualite, variant = 'def
         className="bg-card rounded-xl p-4 shadow-sm border border-border hover:shadow-md transition-all"
       >
         <div className="flex gap-3">
-          {actualite.image && (
-            <img src={actualite.image} alt={actualite.titre} className="w-16 h-16 rounded-lg object-cover" />
-          )}
+          {actualite.image ? (
+  <img src={actualite.image} alt={actualite.titre} className="w-full h-full object-cover" />
+) : (
+  <div className="w-full h-full bg-gray-300 flex items-center justify-center">
+    <Zap className="w-8 h-8 text-gray-400" />
+  </div>
+)}
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               {actualite.categorie && (
