@@ -5,5 +5,6 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY; // ✅ ANON_KEY,
 
 console.log('URL:', import.meta.env.VITE_SUPABASE_URL);
 console.log('KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'présente' : 'manquante');
+console.log(import.meta.env);
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
