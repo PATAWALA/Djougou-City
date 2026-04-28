@@ -1,17 +1,6 @@
 {
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
-  ],
-    "name": "porto-novo-city",
-  "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "env": {
-    "NEXT_PUBLIC_CITY_NAME": "Porto-Novo",
-    "NEXT_PUBLIC_CITY_REGION": "Ouémé"
-  }
+  ]
+  
 }
