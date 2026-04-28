@@ -102,7 +102,7 @@ const Header: React.FC = () => {
           </div>
           <div>
             <h1 className="text-2xl font-display font-bold text-dark">
-              CI<span className="text-primary">Transports</span>
+              Côte d'Ivoire<span className="text-primary">Trafic</span>
             </h1>
             <p className="text-xs text-muted">Votre partenaire mobilité en Côte d'Ivoire</p>
           </div>

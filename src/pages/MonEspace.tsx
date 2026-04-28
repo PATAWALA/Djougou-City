@@ -198,7 +198,7 @@ const MonEspace: React.FC = () => {
         <div className="p-6">
           <Link to="/" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-white font-bold text-xl">CI</div>
-            <span className="text-xl font-display font-bold text-dark">CITransports</span>
+            <span className="text-xl font-display font-bold text-dark">Côte d'Ivoire Trafic</span>
           </Link>
           <p className="text-xs text-muted mt-1">Espace transporteur</p>
         </div>
