@@ -82,7 +82,7 @@ const Header: React.FC = () => {
               <FaFacebookF className="w-4 h-4" />
             </a>
             <a 
-              href={`https://wa.me/2250574366352`} 
+              href={`https://wa.me/2250170900600`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-[#25D366] hover:opacity-80 transition-opacity p-1"

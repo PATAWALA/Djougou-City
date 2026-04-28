@@ -1,13 +1,13 @@
 export const CONTACT = {
-  PHONE: '+225 05 74 36 63 52',
+  PHONE: '+2250170900600',
   ADDRESS: 'Plateau, Abidjan, Côte d\'Ivoire',
-  EMAIL: 'ci.transport225@gmail.com',
+  EMAIL: 'cit.com',
   FACEBOOK: 'Côte d\'Ivoire Transports',
-  FACEBOOK_URL: 'https://web.facebook.com/citransports',
-  WHATSAPP: '2250574366352'
+  FACEBOOK_URL: 'https://web.facebook.com/cotedivoiretrafic/followers',
+  WHATSAPP: '2250170900600'
 };
 
-export const FOLLOWERS = 64000; // 264 K followers
+export const FOLLOWERS = 4000; // 264 K followers
 
 export const PRICES = {
   // Sponsoring
